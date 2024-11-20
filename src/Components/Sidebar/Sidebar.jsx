@@ -350,7 +350,8 @@ const Sidebar = () => {
 
 
         {
-          userName == "DEVELOPER" ? 
+
+          (userName === "DEVELOPER" || userName === "ASAD1010" || userName === "ARIF1971") ?
           <div className=" animate__animated animate__backInDown mt-1">
           <NavLink
             to="/debt"

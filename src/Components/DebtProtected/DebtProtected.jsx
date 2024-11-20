@@ -15,13 +15,11 @@ const DebtProtected = ({ children }) => {
     );
   }
 
-  if (user && (userName === "DEVELOPER" || userName === "ASAD2020")) {
+  if (user && (userName === "DEVELOPER" || userName === "ASAD1010" || userName === "ARIF1971")) {
     // If user is logged in, render children components
     return children;
   }
 
-  // If user is not logged in, redirect to login page
-  return <Navigate state={{ from: location }} to="/" />;
 };
 
 export default DebtProtected;

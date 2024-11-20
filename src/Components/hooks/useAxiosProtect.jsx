@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 
 // Create axios instance
 const axiosProtect = axios.create({
-    baseURL: 'http://localhost:9000',
+    baseURL: 'https://backendsafe.com',
 });
 
 // Axios Interceptor Hook

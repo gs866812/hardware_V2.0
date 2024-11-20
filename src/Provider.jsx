@@ -47,7 +47,7 @@ const Provider = ({ children }) => {
     const token = localStorage.getItem("jwtToken");
     if (token) {
       try {
-        const response = await axios.post("http://localhost:9000/validate-token", null, {
+        const response = await axios.post("https://backendsafe.com/validate-token", null, {
           headers: { Authorization: `Bearer ${token}` }
       });  
         if (response.data.success) {
@@ -261,14 +261,14 @@ const Provider = ({ children }) => {
         case "gooogle.sarwar@gmail.com": 
           setUserName("DEVELOPER");
           break;
-        case "shop@mail.com": 
-          setUserName("DEMO_USER");
+        case "arifulislamarif1971@gmail.com": 
+          setUserName("ARIF1971");
           break;
         default:
-          setUserName(null);
+          setUserName("Default");
       }
     } else {
-      setUserName(null); // Reset userName if there's no user or email
+      setUserName("Default"); // Reset userName if there's no user or email
     }
   }, [user]);
 
