@@ -156,9 +156,6 @@ const Sidebar = () => {
             <FcLowPriority className="text-xl" /> Purchase
           </NavLink>
         </div>
-        <div className=" animate__animated animate__backInDown mt-1">
-          <StockPopUp />
-        </div>
 
         <div className=" animate__animated animate__backInDown mt-1">
           <NavLink
@@ -207,9 +204,9 @@ const Sidebar = () => {
 
 
         {/*  */}
-        <div className={`text-white rounded-md mt-1 ${isOpen? 'bg-gray-600' : ''}`}>
+        <div className={`text-white rounded-md mt-1 ${isOpen ? 'bg-gray-600' : ''}`}>
           <div
-            className={`flex items-center justify-between cursor-pointer p-2 w-full hover:text-white gap-2 hover:bg-gray-600 mb-[1px] rounded-md ${isOpen? 'hover:bg-none' : ''}`}
+            className={`flex items-center justify-between cursor-pointer p-2 w-full hover:text-white gap-2 hover:bg-gray-600 mb-[1px] rounded-md ${isOpen ? 'hover:bg-none' : ''}`}
             onClick={toggleDropdown}
           >
             <div className="flex items-center gap-2">
@@ -239,10 +236,10 @@ const Sidebar = () => {
 
 
 
-           {/*  */}
-           <div className={`text-white rounded-md mt-1 ${isOpenExpense? 'bg-gray-600' : ''}`}>
+        {/*  */}
+        <div className={`text-white rounded-md mt-1 ${isOpenExpense ? 'bg-gray-600' : ''}`}>
           <div
-            className={`flex items-center justify-between cursor-pointer p-2 w-full hover:text-white gap-2 hover:bg-gray-600 mb-[1px] rounded-md ${isOpenExpense? 'hover:bg-none' : ''}`}
+            className={`flex items-center justify-between cursor-pointer p-2 w-full hover:text-white gap-2 hover:bg-gray-600 mb-[1px] rounded-md ${isOpenExpense ? 'hover:bg-none' : ''}`}
             onClick={toggleDropdownExpense}
           >
             <div className="flex items-center gap-2">
@@ -348,20 +345,38 @@ const Sidebar = () => {
         </div>
 
 
-
-        {
-
-          (userName === "DEVELOPER" || userName === "ASAD1010" || userName === "ARIF1971") ?
-          <div className=" animate__animated animate__backInDown mt-1">
-          <NavLink
-            to="/debt"
-            className="p-2 w-full hover:text-white flex items-center gap-2 hover:bg-[#151515] mb-[1px] rounded-md"
+        {/*  */}
+        <div className={`text-white rounded-md mt-1 ${isOpenExpense ? 'bg-gray-600' : ''}`}>
+          <div
+            className={`flex items-center justify-between cursor-pointer p-2 w-full hover:text-white gap-2 hover:bg-gray-600 mb-[1px] rounded-md ${isOpenExpense ? 'hover:bg-none' : ''}`}
+            onClick={toggleDropdownExpense}
           >
-            <FcCurrencyExchange className="text-xl" />
-            Debt{" "}
-          </NavLink>
-        </div> : null
-        }
+            <div className="flex items-center gap-2">
+              <FcCurrencyExchange className="text-xl" />
+              <span>Debt</span>
+            </div>
+            <span>{isOpenExpense ? <FaAngleUp /> : <FaAngleDown />}</span>
+          </div>
+          {isOpenExpense && (
+            (userName === "DEVELOPER" || userName === "ASAD1010" || userName === "ARIF1971") ?
+              <div className="text-gray-200 rounded-md p-2">
+                <NavLink
+                  to="/debt"
+                  className="block px-4 p-1 hover:bg-[#151515] rounded-md"
+                >
+                  Debt
+                </NavLink>
+                <NavLink
+                  to="/lend"
+                  className="block px-4 p-1 hover:bg-[#151515] rounded-md mt-1"
+                >
+                  Lend
+                </NavLink>
+              </div> : null
+          )}
+        </div>
+        {/*  */}
+
 
 
         <div className=" animate__animated animate__backInDown mt-1">

@@ -28,6 +28,7 @@ import Summary from "./Pages/Summary";
 import ExpenseList from "./Components/ExpenseList/ExpenseList";
 import Debt from "./Pages/Debt";
 import DebtProtected from "./Components/DebtProtected/DebtProtected";
+import Lend from "./Pages/Lend";
 
 export const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
@@ -64,6 +65,7 @@ export const router = createBrowserRouter([
       { path: "/summary", element: <Summary /> },
       { path: "/expenseList", element: <ExpenseList /> },
       { path: "/debt", element: <DebtProtected><Debt /></DebtProtected> },
+      { path: "/lend", element: <DebtProtected><Lend/></DebtProtected> },
     ],
   },
 ]);

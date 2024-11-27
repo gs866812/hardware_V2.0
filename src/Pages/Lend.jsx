@@ -8,7 +8,7 @@ import useAxiosProtect from '../Components/hooks/useAxiosProtect';
 import moment from 'moment/moment';
 
 
-const Debt = () => {
+const Lend = () => {
     const navigate = useNavigate();
     const axiosSecure = useAxiosSecure();
     const axiosProtect = useAxiosProtect();
@@ -236,7 +236,7 @@ const Debt = () => {
     return (
         <div className='px-2'>
             <div className='flex items-start justify-between'>
-                <span className='px-4 py-5 bg-red-600 text-white font-bold rounded-md'>DR Balance: {balance}</span>
+                <span className='px-4 py-5 bg-red-600 text-white font-bold rounded-md'>CR Balance: {balance}</span>
             </div>
 
             <div>
@@ -289,9 +289,9 @@ const Debt = () => {
                                     <td className='w-[5%] text-center'>{
                                         parseFloat(borrower.crBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                                     }</td>
-                                    <td className='w-[12%] bg-green-600 text-white cursor-pointer' onClick={(e) => handleReceiver(borrower.borrowerName, borrower.serial)}>Receive From</td>
+                                    <td className='w-[8%] bg-green-600 text-white cursor-pointer' onClick={(e) => handleReceiver(borrower.borrowerName, borrower.serial)}>Lend To</td>
 
-                                    <td className='w-[10%] bg-red-500 text-white cursor-pointer' onClick={() => handlePayer(borrower.borrowerName, borrower.serial)}>Return To</td>
+                                    <td className='w-[11%] bg-red-500 text-white cursor-pointer' onClick={() => handlePayer(borrower.borrowerName, borrower.serial)}>Receive From</td>
                                     <td className='w-[8px] bg-yellow-500  cursor-pointer'>History</td>
                                 </tr>
                             ))
@@ -540,4 +540,4 @@ const Debt = () => {
     );
 };
 
-export default Debt;
+export default Lend;

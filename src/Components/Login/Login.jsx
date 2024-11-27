@@ -38,7 +38,7 @@ const Login = () => {
       const emailData = { email: user.email };
 
       // Request to get JWT token
-      const res = await axios.post('https://backendsafe.com/jwt', emailData);
+      const res = await axios.post('http://localhost:9000/jwt', emailData);
       if (res.data.token) {
         localStorage.setItem('jwtToken', res.data.token); // Store token in localStorage
         setUser(user); // Set the user context
