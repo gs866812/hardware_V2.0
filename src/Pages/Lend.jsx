@@ -17,11 +17,11 @@ const Lend = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [searchStock, setSearchStock] = useState("");
     const [contactNumber, setContactNumber] = useState("");
-    const [borrowerName, setBorrowerName] = useState("");
+    const [lenderName, setLenderName] = useState("");
     const [address, setAddress] = useState("");
-    const [borrowerList, setBorrowerList] = useState([]);
+    const [lenderList, setLenderList] = useState([]);
 
-    const [receivedAmount, setReceivedAmount] = useState("");
+    const [lendingAmount, setLendingAmount] = useState("");
     const [receiver, setReceiver] = useState("");
     const [serial, setSerial] = useState("");
     const [note, setNote] = useState("");
@@ -55,7 +55,7 @@ const Lend = () => {
     const handleReset = () => {
         setContactNumber('');
         setAddress('');
-        setBorrowerName('');
+        setLenderName('');
     };
 
 
@@ -73,16 +73,16 @@ const Lend = () => {
         }
 
 
-        const borrowerInfo = { borrowerName, contactNumber, address };
+        const lenderInfo = { lenderName, contactNumber, address };
 
-        axiosSecure.post("/debt/borrowerList", borrowerInfo)
+        axiosSecure.post("/lend/lenderList", lenderInfo)
             .then((data) => {
                 if (data.data.insertedId) {
                     setReFetch(!reFetch);
                     handleReset();
                     // const modal = document.querySelector('#AddBorrower');
                     // modal.close();
-                    toast.success(`Borrower added successfully`);
+                    toast.success(`Added successfully`);
                 } else {
                     toast.error(data.data);
                 }
@@ -100,13 +100,13 @@ const Lend = () => {
     // ----------------------------------------------------------------------------
     useEffect(() => {
         axiosProtect
-            .get(`/borrowerList`, {
+            .get(`/lenderList`, {
                 params: {
                     userEmail: user?.email,
                 },
             })
             .then((res) => {
-                setBorrowerList(res.data);
+                setLenderList(res.data);
             })
             .catch((err) => {
                 toast.error(err);
@@ -135,44 +135,43 @@ const Lend = () => {
     const handleReceiver = (name, serial) => {
         setReceiver(name);
         setSerial(serial);
-        document.getElementById(`receivedAmount`).showModal();
+        document.getElementById(`lendingAmount`).showModal();
     }
 
 
     // ..................................................................
 
-    const handleReceivedAmountReset = (e) => {
-        setReceivedAmount('');
+    const handleLendingAmountReset = (e) => {
+        setLendingAmount('');
         setNote('');
         setMethod('');
 
     }
 
     // ..................................................................
-    const handleReceivedAmount = (e) => {
+    const handleLendingAmount = (e) => {
         e.preventDefault();
 
         if (isLoading) return;
         setIsLoading(true);
 
         const date = moment(new Date()).format("DD.MM.YYYY");
-        const rcvAmount = parseFloat(receivedAmount);
+        const rcvAmount = parseFloat(lendingAmount);
 
         const receiverInfo = { date, rcvAmount, serial, note, method, userName };
 
-        console.log(receiverInfo);
+     
 
-        axiosSecure.post("/debt/receivedMoney", receiverInfo)
+        axiosSecure.post("/lend/givingMoney", receiverInfo)
             .then((data) => {
                 if (data.data.message) {
-                    console.log(data.data.message == 'Money received successfully');
                     setReFetch(!reFetch);
-                    handleReceivedAmountReset();
-                    const modal = document.querySelector('#receivedAmount');
+                    handleLendingAmountReset();
+                    const modal = document.querySelector('#lendingAmount');
                     modal.close();
-                    toast.success(`Balance added successfully`);
+                    toast.success(`Balance given successfully`);
                 } else {
-                    toast.error(data.data.error);
+                    toast.error(data.data);
                 }
             }).catch((error) => {
                 toast.error("Server error", error);
@@ -188,7 +187,7 @@ const Lend = () => {
     const handlePayer = (name, serial) => {
         setPayer(name);
         setSerial(serial);
-        document.getElementById(`givenAmount`).showModal();
+        document.getElementById(`returnAmount`).showModal();
     }
 
 
@@ -201,7 +200,7 @@ const Lend = () => {
 
     }
 
-    const handlePayerAmount = (e) => {
+    const handleReturnAmount = (e) => {
         e.preventDefault();
 
         if (isLoading) return;
@@ -210,18 +209,17 @@ const Lend = () => {
         const date = moment(new Date()).format("DD.MM.YYYY");
         const payAmount = parseFloat(returnAmount);
 
-        const payInfo = { date, payAmount, returnNote, serial, returnMethod, userName };
+        const returnInfo = { date, payAmount, returnNote, serial, returnMethod, userName };
 
 
-        axiosSecure.post("/debt/returnMoney", payInfo)
+        axiosSecure.post("/lend/returnMoney", returnInfo)
             .then((data) => {
                 if (data.data == 'Success') {
-                    console.log(data.data);
                     setReFetch(!reFetch);
                     handleGivenAmountReset();
-                    const modal = document.querySelector('#givenAmount');
+                    const modal = document.querySelector('#returnAmount');
                     modal.close();
-                    toast.success(`Paid successfully`);
+                    toast.success(`Received successfully`);
                 } else {
                     toast.error(data.data);
                 }
@@ -242,7 +240,7 @@ const Lend = () => {
             <div>
                 <div className="flex items-center justify-between mt-5">
                     <div className="flex gap-2 items-center">
-                        <h2 className="text-2xl">Borrower List:</h2>
+                        <h2 className="text-2xl">Recent Transactions:</h2>
                     </div>
                     <div className='flex items-center gap-1'>
                         <label className="flex gap-1 items-center border py-1 px-3 rounded-md">
@@ -272,26 +270,26 @@ const Lend = () => {
                             <th>Name</th>
                             <th>Mobile</th>
                             <th>Address</th>
-                            <th>Due Balance</th>
+                            <th>Credit</th>
                             <th colSpan={3} className='text-center'>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {/* row 1 */}
                         {
-                            Array.isArray(borrowerList) &&
-                            borrowerList.map((borrower, idx) => (
+                            Array.isArray(lenderList) &&
+                            lenderList.map((lender, idx) => (
                                 <tr key={idx}>
-                                    <td className='w-[5%] text-center'>{borrower.serial}</td>
-                                    <td>{borrower.borrowerName}</td>
-                                    <td>{borrower.contactNumber}</td>
-                                    <td>{borrower.address}</td>
+                                    <td className='w-[5%] text-center'>{lender.serial}</td>
+                                    <td>{lender.lenderName}</td>
+                                    <td>{lender.contactNumber}</td>
+                                    <td>{lender.address}</td>
                                     <td className='w-[5%] text-center'>{
-                                        parseFloat(borrower.crBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                        parseFloat(lender.crBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                                     }</td>
-                                    <td className='w-[8%] bg-green-600 text-white cursor-pointer' onClick={(e) => handleReceiver(borrower.borrowerName, borrower.serial)}>Lend To</td>
+                                    <td className='w-[8%] bg-green-600 text-white cursor-pointer' onClick={(e) => handleReceiver(lender.lenderName, lender.serial)}>Lend To</td>
 
-                                    <td className='w-[11%] bg-red-500 text-white cursor-pointer' onClick={() => handlePayer(borrower.borrowerName, borrower.serial)}>Receive From</td>
+                                    <td className='w-[11%] bg-red-500 text-white cursor-pointer' onClick={() => handlePayer(lender.lenderName, lender.serial)}>Return From</td>
                                     <td className='w-[8px] bg-yellow-500  cursor-pointer'>History</td>
                                 </tr>
                             ))
@@ -326,19 +324,19 @@ const Lend = () => {
                             />
                         </label>
                         <label className="flex items-center">
-                            <p className="w-1/2 font-semibold">Borrower Name:</p>{" "}
+                            <p className="w-1/2 font-semibold">Name:</p>{" "}
                             <input
                                 type="text"
                                 name="Borrower Name"
-                                value={borrowerName}
-                                onChange={(e) => setBorrowerName(e.target.value)}
+                                value={lenderName}
+                                onChange={(e) => setLenderName(e.target.value)}
                                 placeholder="Name"
                                 className="py-1 px-2 rounded-md outline-none border w-1/2"
                                 required
                             />
                         </label>
                         <label className="flex items-center">
-                            <p className="w-1/2 font-semibold">Borrower Address:</p>{" "}
+                            <p className="w-1/2 font-semibold">Address:</p>{" "}
                             <input
                                 type="text"
                                 name="Borrower Address"
@@ -373,10 +371,10 @@ const Lend = () => {
             </dialog>
             {/* Add borrower modal end */}
 
-            {/* received amount start */}
-            <dialog id="receivedAmount" className="modal">
+            {/* lending amount start */}
+            <dialog id="lendingAmount" className="modal">
                 <div className="modal-box">
-                    <h3 className="font-bold text-lg mb-3 uppercase">Receiving from: <span className='text-red-600'>{receiver}</span></h3>
+                    <h3 className="font-bold text-lg mb-3 uppercase">Lend to: <span className='text-red-600'>{receiver}</span></h3>
                     <hr />
                     <form method="dialog">
                         {/* if there is a button in form, it will close the modal */}
@@ -384,50 +382,50 @@ const Lend = () => {
                             ✕
                         </button>
                     </form>
-                    <form onSubmit={handleReceivedAmount} className="mt-5 space-y-5">
+                    <form onSubmit={handleLendingAmount} className="mt-5 space-y-5">
                         <label className="flex items-center">
-                            <p className="w-1/2 font-semibold">Receive Amount</p>{" "}
+                            <p className="w-1/2 font-semibold">Lending Amount</p>{" "}
                             <input
                                 type="number"
                                 name="receive_amount"
-                                value={receivedAmount}
+                                value={lendingAmount}
                                 onChange={(e) => {
                                     const value = e.target.value;
 
                                     // Allow empty input or values that are positive floating-point numbers
                                     if (!isNaN(value) && value >= 0) {
-                                        setReceivedAmount(value);
+                                        setLendingAmount(value);
                                     }
                                 }}
                                 min="0" // Prevents negative numbers in most browsers
                                 step="0.01" // Allows floating-point numbers
-                                placeholder="Amount to be received"
+                                placeholder="Amount to be given"
                                 className="py-1 px-2 rounded-md outline-none border w-1/2"
                                 required
                             />
 
                         </label>
                         <label className="flex items-center">
-                            <p className="w-1/2 font-semibold">Receiving Method</p>{" "}
+                            <p className="w-1/2 font-semibold">Method</p>{" "}
                             <input
                                 type="text"
                                 name="receive_method"
                                 value={method}
                                 onChange={(e) => setMethod(e.target.value)}
-                                placeholder="Receive Method"
+                                placeholder="Method"
                                 className="py-1 px-2 rounded-md outline-none border w-1/2"
                                 required
                             />
 
                         </label>
                         <label className="flex items-center">
-                            <p className="w-1/2 font-semibold">Receive Note</p>{" "}
+                            <p className="w-1/2 font-semibold">Note</p>{" "}
                             <input
                                 type="text"
                                 name="receive_note"
                                 value={note}
                                 onChange={(e) => setNote(e.target.value)}
-                                placeholder="Receive Note"
+                                placeholder="Note"
                                 className="py-1 px-2 rounded-md outline-none border w-1/2"
                                 required
                             />
@@ -438,7 +436,7 @@ const Lend = () => {
                             <input
                                 type="reset"
                                 value="Reset"
-                                onClick={handleReceivedAmountReset}
+                                onClick={handleLendingAmountReset}
                                 className="bg-yellow-300 py-2 px-4 rounded-md"
                             />
 
@@ -447,7 +445,7 @@ const Lend = () => {
                                     }`}
                                 disabled={isLoading}
                             >
-                                Money Received
+                                Lend
                             </button>
                         </span>
                     </form>
@@ -456,9 +454,9 @@ const Lend = () => {
             {/* received amount end */}
 
             {/* given amount start */}
-            <dialog id="givenAmount" className="modal">
+            <dialog id="returnAmount" className="modal">
                 <div className="modal-box">
-                    <h3 className="font-bold text-lg mb-3 uppercase">Pay to: <span className='text-red-600'>{payer}</span></h3>
+                    <h3 className="font-bold text-lg mb-3 uppercase">Return From: <span className='text-red-600'>{payer}</span></h3>
                     <hr />
                     <form method="dialog">
                         {/* if there is a button in form, it will close the modal */}
@@ -466,9 +464,9 @@ const Lend = () => {
                             ✕
                         </button>
                     </form>
-                    <form onSubmit={handlePayerAmount} className="mt-5 space-y-5">
+                    <form onSubmit={handleReturnAmount} className="mt-5 space-y-5">
                         <label className="flex items-center">
-                            <p className="w-1/2 font-semibold">Pay Amount</p>{" "}
+                            <p className="w-1/2 font-semibold">Return Amount</p>{" "}
                             <input
                                 type="number"
                                 name="return_amount"
@@ -483,14 +481,14 @@ const Lend = () => {
                                 }}
                                 min="0" // Prevents negative numbers in most browsers
                                 step="0.01" // Allows floating-point numbers
-                                placeholder="Amount to be paid"
+                                placeholder="Amount to be receive"
                                 className="py-1 px-2 rounded-md outline-none border w-1/2"
                                 required
                             />
 
                         </label>
                         <label className="flex items-center">
-                            <p className="w-1/2 font-semibold">Pay Method</p>{" "}
+                            <p className="w-1/2 font-semibold">Method</p>{" "}
                             <input
                                 type="text"
                                 name="return_method"
@@ -503,13 +501,13 @@ const Lend = () => {
 
                         </label>
                         <label className="flex items-center">
-                            <p className="w-1/2 font-semibold">Pay Note</p>{" "}
+                            <p className="w-1/2 font-semibold">Note</p>{" "}
                             <input
                                 type="text"
                                 name="given_note"
                                 value={returnNote}
                                 onChange={(e) => setReturnNote(e.target.value)}
-                                placeholder="Given Note"
+                                placeholder="Note"
                                 className="py-1 px-2 rounded-md outline-none border w-1/2"
                                 required
                             />
@@ -529,7 +527,7 @@ const Lend = () => {
                                     }`}
                                 disabled={isLoading}
                             >
-                                Money Pay
+                                Receive
                             </button>
                         </span>
                     </form>

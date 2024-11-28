@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ContextData } from '../Provider';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import useAxiosSecure from '../Components/hooks/useAxiosSecure';
 import { CiSearch } from 'react-icons/ci';
@@ -9,13 +8,12 @@ import moment from 'moment/moment';
 
 
 const Debt = () => {
-    const navigate = useNavigate();
+
     const axiosSecure = useAxiosSecure();
     const axiosProtect = useAxiosProtect();
-    const { reFetch, setReFetch, userName, user } = useContext(ContextData);
+    const { reFetch, setReFetch, userName, user, currentPage, setCurrentPage, setItemsPerPage, itemsPerPage } = useContext(ContextData);
 
     const [isLoading, setIsLoading] = useState(false);
-    const [searchStock, setSearchStock] = useState("");
     const [contactNumber, setContactNumber] = useState("");
     const [borrowerName, setBorrowerName] = useState("");
     const [address, setAddress] = useState("");
@@ -33,6 +31,10 @@ const Debt = () => {
     const [returnNote, setReturnNote] = useState("");
 
     const [debtBalance, setDebtBalance] = useState(0);
+    const [searchBorrower, setSearchBorrower] = useState("");
+    const [borrowerCount, setBorrowerCount] = useState({});
+
+
 
     // ----------------------------------------------------------------------------
     // contact number input onchange
@@ -46,10 +48,17 @@ const Debt = () => {
 
     // ----------------------------------------------------------------------------
 
-    const handleInputChange = (event) => {
-        setSearchStock(event.target.value);
-        // setCurrentPage(1); // reset to first page on new search
-    };
+    useEffect(() => {
+        setCurrentPage(1);
+        setSearchBorrower("");
+        return () => {
+            setSearchBorrower("");
+            setCurrentPage(1);
+        };
+    }, [setCurrentPage, setSearchBorrower]);
+
+
+
 
     // ----------------------------------------------------------------------------
     const handleReset = () => {
@@ -103,15 +112,19 @@ const Debt = () => {
             .get(`/borrowerList`, {
                 params: {
                     userEmail: user?.email,
+                    page: currentPage,
+                    size: itemsPerPage,
+                    search: searchBorrower,
                 },
             })
             .then((res) => {
-                setBorrowerList(res.data);
+                setBorrowerList(res.data.result);
+                setBorrowerCount(res.data.count)
             })
             .catch((err) => {
                 toast.error(err);
             });
-    }, [reFetch]);
+    }, [reFetch, currentPage, itemsPerPage, axiosProtect, searchBorrower, user?.email]);
     // ----------------------------------------------------------------------------
 
     const balance = debtBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -160,12 +173,9 @@ const Debt = () => {
 
         const receiverInfo = { date, rcvAmount, serial, note, method, userName };
 
-        console.log(receiverInfo);
-
         axiosSecure.post("/debt/receivedMoney", receiverInfo)
             .then((data) => {
                 if (data.data.message) {
-                    console.log(data.data.message == 'Money received successfully');
                     setReFetch(!reFetch);
                     handleReceivedAmountReset();
                     const modal = document.querySelector('#receivedAmount');
@@ -216,7 +226,6 @@ const Debt = () => {
         axiosSecure.post("/debt/returnMoney", payInfo)
             .then((data) => {
                 if (data.data == 'Success') {
-                    console.log(data.data);
                     setReFetch(!reFetch);
                     handleGivenAmountReset();
                     const modal = document.querySelector('#givenAmount');
@@ -233,6 +242,76 @@ const Debt = () => {
             });
     };
 
+    const handleInputChange = (event) => {
+        setSearchBorrower(event.target.value);
+        setCurrentPage(1); // reset to first page on new search
+    };
+
+
+    // Pagination
+    const totalItem = borrowerCount;
+    const numberOfPages = Math.ceil(totalItem / itemsPerPage);
+
+    const renderPageNumbers = () => {
+        const pageNumbers = [];
+        const maxPagesToShow = 5; // Maximum number of page buttons to show
+        const halfMaxPagesToShow = Math.floor(maxPagesToShow / 2);
+        const totalPages = numberOfPages;
+
+        if (totalPages <= maxPagesToShow) {
+            for (let i = 1; i <= totalPages; i++) {
+                pageNumbers.push(i);
+            }
+        } else {
+            if (currentPage <= halfMaxPagesToShow) {
+                for (let i = 1; i <= maxPagesToShow; i++) {
+                    pageNumbers.push(i);
+                }
+                pageNumbers.push("...", totalPages);
+            } else if (currentPage > totalPages - halfMaxPagesToShow) {
+                pageNumbers.push(1, "...");
+                for (let i = totalPages - maxPagesToShow + 1; i <= totalPages; i++) {
+                    pageNumbers.push(i);
+                }
+            } else {
+                pageNumbers.push(1, "...");
+                for (
+                    let i = currentPage - halfMaxPagesToShow;
+                    i <= currentPage + halfMaxPagesToShow;
+                    i++
+                ) {
+                    pageNumbers.push(i);
+                }
+                pageNumbers.push("...", totalPages);
+            }
+        }
+
+        return pageNumbers;
+    };
+
+    const handleItemsPerPage = (e) => {
+        const val = parseInt(e.target.value);
+        setItemsPerPage(val);
+        setCurrentPage(1);
+    };
+
+    const handlePrevPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < numberOfPages) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
+    const handlePageClick = (page) => {
+        setCurrentPage(page);
+        // any other logic to handle page change
+    };
+
     return (
         <div className='px-2'>
             <div className='flex items-start justify-between'>
@@ -242,7 +321,7 @@ const Debt = () => {
             <div>
                 <div className="flex items-center justify-between mt-5">
                     <div className="flex gap-2 items-center">
-                        <h2 className="text-2xl">Borrower List:</h2>
+                        <h2 className="text-2xl">Recent Transactions:</h2>
                     </div>
                     <div className='flex items-center gap-1'>
                         <label className="flex gap-1 items-center border py-1 px-3 rounded-md">
@@ -326,7 +405,7 @@ const Debt = () => {
                             />
                         </label>
                         <label className="flex items-center">
-                            <p className="w-1/2 font-semibold">Borrower Name:</p>{" "}
+                            <p className="w-1/2 font-semibold">Name:</p>{" "}
                             <input
                                 type="text"
                                 name="Borrower Name"
@@ -338,7 +417,7 @@ const Debt = () => {
                             />
                         </label>
                         <label className="flex items-center">
-                            <p className="w-1/2 font-semibold">Borrower Address:</p>{" "}
+                            <p className="w-1/2 font-semibold">Address:</p>{" "}
                             <input
                                 type="text"
                                 name="Borrower Address"
@@ -536,6 +615,49 @@ const Debt = () => {
                 </div>
             </dialog>
             {/* given amount end */}
+
+            {/* pagination */}
+            {borrowerCount && (
+                <div className="my-8 flex justify-center gap-1">
+                    <button
+                        onClick={handlePrevPage}
+                        className="py-2 px-3 bg-green-500 text-white rounded-md hover:bg-gray-600"
+                        disabled={currentPage === 1}
+                    >
+                        Prev
+                    </button>
+                    {renderPageNumbers().map((page, index) => (
+                        <button
+                            key={index}
+                            onClick={() => typeof page === "number" && handlePageClick(page)}
+                            className={`py-2 px-5 bg-green-500 text-white rounded-md hover:bg-gray-600 ${currentPage === page ? "!bg-gray-600" : ""
+                                }`}
+                            disabled={typeof page !== "number"}
+                        >
+                            {page}
+                        </button>
+                    ))}
+                    <button
+                        onClick={handleNextPage}
+                        className="py-2 px-3 bg-green-500 text-white rounded-md hover:bg-gray-600"
+                        disabled={currentPage === numberOfPages}
+                    >
+                        Next
+                    </button>
+
+                    <select
+                        value={itemsPerPage}
+                        onChange={handleItemsPerPage}
+                        name=""
+                        id=""
+                        className="py-2 px-1 rounded-md bg-green-500 text-white outline-none"
+                    >
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            )}
         </div>
     );
 };

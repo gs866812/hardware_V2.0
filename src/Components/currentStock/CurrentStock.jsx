@@ -37,7 +37,7 @@ const CurrentStock = () => {
   const [productID, setProductID] = useState(null);
   const [confirmQuantity, setConfirmQuantity] = useState('');
   const [confirmPrice, setConfirmPrice] = useState('');
-  console.log(confirmQuantity, confirmPrice);
+
 
   useEffect(() => {
     axiosProtect
