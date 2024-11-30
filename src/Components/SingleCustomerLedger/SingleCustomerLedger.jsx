@@ -408,6 +408,7 @@ const SingleCustomerLedger = () => {
         <h2 className="py-2 text-xl uppercase font-bold">
           Sales Invoice History
         </h2>
+        <h2 className="text-xl">Schedule Payment Date: <span className="text-red-600">{singleCustomer.scheduleDate}</span></h2>
         <div className="flex gap-2">
           <input
             type="text"

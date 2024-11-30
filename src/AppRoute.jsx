@@ -29,6 +29,7 @@ import ExpenseList from "./Components/ExpenseList/ExpenseList";
 import Debt from "./Pages/Debt";
 import DebtProtected from "./Components/DebtProtected/DebtProtected";
 import Lend from "./Pages/Lend";
+import CustomerScheduleDate from "./Pages/CustomerScheduleDate";
 
 export const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
@@ -64,6 +65,7 @@ export const router = createBrowserRouter([
       { path: "/return", element: <TradeReturn /> },
       { path: "/summary", element: <Summary /> },
       { path: "/expenseList", element: <ExpenseList /> },
+      { path: "/customerPaymentDate", element: <CustomerScheduleDate/> },
       { path: "/debt", element: <DebtProtected><Debt /></DebtProtected> },
       { path: "/lend", element: <DebtProtected><Lend/></DebtProtected> },
     ],

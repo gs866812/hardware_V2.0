@@ -229,6 +229,12 @@ const Sidebar = () => {
               >
                 Customer
               </NavLink>
+              <NavLink
+                to="/customerPaymentDate"
+                className="block px-4 p-1 hover:bg-[#151515] rounded-md mt-1"
+              >
+                Customer Payment date
+              </NavLink>
             </div>
           )}
         </div>

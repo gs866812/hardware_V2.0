@@ -8,6 +8,9 @@ import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import Select from "react-select";
 import useAxiosProtect from "../hooks/useAxiosProtect";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
 
 const NewSale = () => {
   const {
@@ -37,11 +40,13 @@ const NewSale = () => {
   let [discount, setDiscount] = useState("");
   const [grandTotal, setGrandTotal] = useState("");
   const [payAmount, setPayAmount] = useState("");
-  const [dueAmount, setDueAmount] = useState("");
+  const [dueAmount, setDueAmount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isAddButtonDisabled, setIsAddButtonDisabled] = useState(false);
   const [contactNumberValue, setContactNumberValue] = useState("");
   const [newCustomer, setNewCustomer] = useState({});
+
+  const [startDate, setStartDate] = useState();
 
   useEffect(() => {
     if (tokenReady && user?.email) {
@@ -184,15 +189,15 @@ const NewSale = () => {
   useEffect(() => {
     if (tokenReady && user?.email) {
       axiosProtect
-      .get(`/tempSalesProductList/${user?.email}`)
-      .then((data) => {
-        setTempProductList(data.data);
-      })
-      .catch((err) => {
-        toast.error("Server error", err);
-      });
+        .get(`/tempSalesProductList/${user?.email}`)
+        .then((data) => {
+          setTempProductList(data.data);
+        })
+        .catch((err) => {
+          toast.error("Server error", err);
+        });
     }
-    
+
   }, [reFetch, tokenReady, user?.email]);
 
   const salesProductListAmount = Array.isArray(tempProductList)
@@ -328,12 +333,16 @@ const NewSale = () => {
       });
   };
 
+  const customerDue = newCustomer.customerDue?.dueAmount;
+
   // ..........................................................................
   const handleProceed = (e) => {
     e.preventDefault();
     const customerName = e.target.customer_name.value;
     const customerMobile = e.target.customer_mobile.value;
     const customerAddress = e.target.customer_address.value;
+    const scheduleDate = moment(startDate).format("DD.MM.YYYY");
+    
 
     // Check if the form is already being submitted
     if (isLoading) return;
@@ -344,6 +353,11 @@ const NewSale = () => {
       setIsLoading(false); // Reset loading state
       return toast.error("Invalid mobile number");
     }
+
+    if (!startDate) {
+      setIsLoading(false); // Reset loading state
+      return toast.error("Please select a date.");
+    } 
 
     const date = moment(new Date()).format("DD.MM.YYYY");
 
@@ -375,12 +389,15 @@ const NewSale = () => {
       grandTotal,
       finalPayAmount,
       dueAmount,
+      scheduleDate,
       profit,
       userName,
       userMail,
       customerMobile,
       customerAddress,
     };
+
+    console.log(salesInvoiceInfo);
 
     axiosSecure
       .post("/newSalesInvoice", salesInvoiceInfo)
@@ -568,7 +585,7 @@ const NewSale = () => {
             {/* Left Column: Mobile, Name, and Address */}
             <div className="space-y-7">
               <label className="flex gap-2 items-center">
-                <span className="w-24 font-bold">Mobile:</span>
+                <span className="w-40 font-bold">Mobile:</span>
                 <input
                   type="tel"
                   name="customer_mobile"
@@ -581,11 +598,11 @@ const NewSale = () => {
               </label>
 
               <label className="flex gap-2 items-center">
-                <span className="w-24 font-bold">Name:</span>
+                <span className="w-40 font-bold">Name:</span>
                 <input
                   type="text"
                   name="customer_name"
-                  defaultValue={newCustomer.customerName}
+                  defaultValue={newCustomer.customer?.customerName}
                   required
                   className="border py-1 px-2 rounded-md outline-none focus:bg-gray-200 w-full"
                   placeholder="Name"
@@ -593,16 +610,46 @@ const NewSale = () => {
               </label>
 
               <label className="flex gap-2 items-center">
-                <span className="w-24 font-bold">Address:</span>
+                <span className="w-40 font-bold">Address:</span>
                 <input
                   type="text"
                   name="customer_address"
-                  defaultValue={newCustomer.customerAddress}
+                  defaultValue={newCustomer.customer?.customerAddress}
                   required
                   className="border py-1 px-2 rounded-md outline-none focus:bg-gray-200 w-full"
                   placeholder="Address"
                 />
               </label>
+
+              <label className="flex gap-2 items-center">
+                <span className="w-40 font-bold">Existing Due:</span>
+                <input
+                  type="text"
+                  name="customer_due"
+                  readOnly
+                  defaultValue={customerDue}
+                  className={`border py-1 px-2 rounded-md outline-none w-full ${customerDue > 0 ? 'bg-red-300' : ''}`}
+                />
+              </label>
+
+
+              {
+                dueAmount > 0 ?
+                  <label className="flex gap-2 items-center">
+                    <span className="w-auto font-bold ">Schedule date:</span>
+                    <DatePicker
+                      dateFormat="dd.MM.yyyy"
+                      selected={startDate}
+                      onChange={(date) => {
+                        setStartDate(date); // Update state
+                      }}
+                      placeholderText="Select a date"
+                      required
+                      minDate={new Date()}
+                      className="px-1 rounded-sm ml-1"
+                    />
+                  </label> : null
+              }
             </div>
 
             {/* Right Column: Total, Discount, Grand Total, Pay Amount, and Due Amount */}
