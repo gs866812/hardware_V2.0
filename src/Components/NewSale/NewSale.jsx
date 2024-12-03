@@ -45,8 +45,13 @@ const NewSale = () => {
   const [isAddButtonDisabled, setIsAddButtonDisabled] = useState(false);
   const [contactNumberValue, setContactNumberValue] = useState("");
   const [newCustomer, setNewCustomer] = useState({});
+  const [customerBalance, setCustomerBalance] = useState('');
+  
 
-  const [startDate, setStartDate] = useState();
+  const [startDate, setStartDate] = useState('');
+
+  const [selected, setSelected] = useState(false);
+
 
   useEffect(() => {
     if (tokenReady && user?.email) {
@@ -251,11 +256,15 @@ const NewSale = () => {
     document.getElementById("sales_step_1").classList.add("hidden");
     document.getElementById("add_product").classList.add("hidden");
     document.getElementById("sales_step_2").classList.remove("hidden");
+    document.getElementById("price").classList.add("hidden");
+    document.getElementById("stock").classList.add("hidden");
   };
   const handlePrevious = () => {
     document.getElementById("sales_step_1").classList.remove("hidden");
     document.getElementById("add_product").classList.remove("hidden");
     document.getElementById("sales_step_2").classList.add("hidden");
+    document.getElementById("price").classList.remove("hidden");
+    document.getElementById("stock").classList.remove("hidden");
   };
 
   // const customerOptions = customer.map((customer) => ({
@@ -327,6 +336,7 @@ const NewSale = () => {
       .post(`/getCustomer/${customerNumberValue}`)
       .then((response) => {
         setNewCustomer(response.data);
+        setCustomerBalance(response.data.customerBalance.crBalance);
       })
       .catch((err) => {
         toast.error(err);
@@ -335,6 +345,9 @@ const NewSale = () => {
 
   const customerDue = newCustomer.customerDue?.dueAmount;
 
+
+
+
   // ..........................................................................
   const handleProceed = (e) => {
     e.preventDefault();
@@ -342,7 +355,9 @@ const NewSale = () => {
     const customerMobile = e.target.customer_mobile.value;
     const customerAddress = e.target.customer_address.value;
     const scheduleDate = moment(startDate).format("DD.MM.YYYY");
+    const paidOfSource = selected;
     
+
 
     // Check if the form is already being submitted
     if (isLoading) return;
@@ -354,10 +369,10 @@ const NewSale = () => {
       return toast.error("Invalid mobile number");
     }
 
-    if (!startDate) {
-      setIsLoading(false); // Reset loading state
-      return toast.error("Please select a date.");
-    } 
+    // if (dueAmount > 0 && !startDate) {
+    //   setIsLoading(false); // Reset loading state
+    //   return toast.error("Please select a date.");
+    // }
 
     const date = moment(new Date()).format("DD.MM.YYYY");
 
@@ -390,6 +405,7 @@ const NewSale = () => {
       finalPayAmount,
       dueAmount,
       scheduleDate,
+      paidOfSource,
       profit,
       userName,
       userMail,
@@ -442,8 +458,8 @@ const NewSale = () => {
       {/* ........................................... */}
 
       <div className="border py-10 mt-5 border-gray-200 px-5 rounded-md shadow-md relative">
-        <span className="absolute text-gray-300 top-2 left-5">{purchasePrice}</span>
-        <span className="absolute text-gray-400 top-0 left-[75%] border p-1 rounded-md">{purchaseQuantity}</span>
+        <span className="absolute text-gray-300 top-2 left-5" id="price">{purchasePrice}</span>
+        <span className="absolute text-gray-400 top-0 left-[75%] border p-1 rounded-md" id="stock">{purchaseQuantity}</span>
         <form
           onSubmit={handleSalesProduct}
           className="flex flex-col gap-3"
@@ -632,9 +648,22 @@ const NewSale = () => {
                 />
               </label>
 
+              <label className="flex gap-2 items-center">
+                <span className="w-40 font-bold">Customer Balance:</span>
+                <input
+                  type="text"
+                  name="customer_balance"
+                  readOnly
+                  defaultValue={
+                    customerBalance
+                  }
+                  className={`border py-1 px-2 rounded-md outline-none w-full text-green-600`}
+                />
+              </label>
+
 
               {
-                dueAmount > 0 ?
+                dueAmount > 0 ? (
                   <label className="flex gap-2 items-center">
                     <span className="w-auto font-bold ">Schedule date:</span>
                     <DatePicker
@@ -644,11 +673,12 @@ const NewSale = () => {
                         setStartDate(date); // Update state
                       }}
                       placeholderText="Select a date"
-                      required
+                      required={dueAmount > 0} // Conditionally apply 'required'
                       minDate={new Date()}
                       className="px-1 rounded-sm ml-1"
                     />
-                  </label> : null
+                  </label>
+                ) : null
               }
             </div>
 
@@ -702,6 +732,15 @@ const NewSale = () => {
                   className="border py-1 px-2 rounded-md outline-none focus:bg-gray-200 w-full"
                 />
               </label>
+
+              <div className="flex gap-2 items-center justify-start">
+                <span className="w-[110px] font-bold">Receive from AC:</span>
+                <input
+                  type="checkbox"
+                  onChange={(e) => setSelected(e.target.checked)}
+                  className=""
+                />
+              </div>
 
               <label className="flex gap-2 items-center">
                 <span className="w-36 font-bold">Due Amount:</span>

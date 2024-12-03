@@ -2,7 +2,6 @@ import { NavLink, useLocation } from "react-router-dom";
 import logo from "../../assets/images/logo_white.png";
 
 
-
 import {
   FcBriefcase,
   FcBullish,
@@ -35,6 +34,7 @@ const Sidebar = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenExpense, setIsOpenExpense] = useState(false);
+  const [isOpenDebt, setIsOpenDebt] = useState(false);
 
   // number validation
   const handleInputCostAmount = (event) => {
@@ -122,6 +122,11 @@ const Sidebar = () => {
   };
   const toggleDropdownExpense = () => {
     setIsOpenExpense(!isOpenExpense);
+  };
+
+
+  const toggleDropdownDebt = () => {
+    setIsOpenDebt(!isOpenDebt);
   };
 
   return (
@@ -352,10 +357,10 @@ const Sidebar = () => {
 
 
         {/*  */}
-        <div className={`text-white rounded-md mt-1 ${isOpenExpense ? 'bg-gray-600' : ''}`}>
+        <div className={`text-white rounded-md mt-1 ${isOpenDebt ? 'bg-gray-600' : ''}`}>
           <div
             className={`flex items-center justify-between cursor-pointer p-2 w-full hover:text-white gap-2 hover:bg-gray-600 mb-[1px] rounded-md ${isOpenExpense ? 'hover:bg-none' : ''}`}
-            onClick={toggleDropdownExpense}
+            onClick={toggleDropdownDebt}
           >
             <div className="flex items-center gap-2">
               <FcCurrencyExchange className="text-xl" />
@@ -363,7 +368,7 @@ const Sidebar = () => {
             </div>
             <span>{isOpenExpense ? <FaAngleUp /> : <FaAngleDown />}</span>
           </div>
-          {isOpenExpense && (
+          {isOpenDebt && (
             (userName === "DEVELOPER" || userName === "ASAD1010" || userName === "ARIF1971") ?
               <div className="text-gray-200 rounded-md p-2">
                 <NavLink
