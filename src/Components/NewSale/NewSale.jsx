@@ -355,7 +355,7 @@ const NewSale = () => {
     const customerMobile = e.target.customer_mobile.value;
     const customerAddress = e.target.customer_address.value;
     const scheduleDate = moment(startDate).format("DD.MM.YYYY");
-    const paidOfSource = selected;
+    const sourceOfPaid = selected;
     
 
 
@@ -369,10 +369,7 @@ const NewSale = () => {
       return toast.error("Invalid mobile number");
     }
 
-    // if (dueAmount > 0 && !startDate) {
-    //   setIsLoading(false); // Reset loading state
-    //   return toast.error("Please select a date.");
-    // }
+    
 
     const date = moment(new Date()).format("DD.MM.YYYY");
 
@@ -394,6 +391,12 @@ const NewSale = () => {
       setIsLoading(false); // Reset loading state
       return toast.error("Payment exceeded");
     }
+    if (sourceOfPaid && finalPayAmount > customerBalance) {
+      setIsLoading(false); // Reset loading state
+      return toast.error("Insufficient customer balance");
+    }
+
+
 
     const userMail = user?.email;
     const salesInvoiceInfo = {
@@ -405,7 +408,7 @@ const NewSale = () => {
       finalPayAmount,
       dueAmount,
       scheduleDate,
-      paidOfSource,
+      sourceOfPaid,
       profit,
       userName,
       userMail,

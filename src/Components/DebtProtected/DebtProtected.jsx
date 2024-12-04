@@ -1,10 +1,10 @@
 import { useContext } from 'react';
 import { ContextData } from '../../Provider';
-import { Navigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 const DebtProtected = ({ children }) => {
   const {user, userName, loading } = useContext(ContextData);
-  const location = useLocation();
+
 
   if (loading) {
     // Show spinner while loading
