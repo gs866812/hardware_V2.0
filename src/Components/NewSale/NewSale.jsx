@@ -39,14 +39,16 @@ const NewSale = () => {
   const [tempProductList, setTempProductList] = useState([]);
   let [discount, setDiscount] = useState("");
   const [grandTotal, setGrandTotal] = useState("");
-  const [payAmount, setPayAmount] = useState("");
-  const [dueAmount, setDueAmount] = useState(0);
+  const [payAmount, setPayAmount] = useState(0);
+  const [dueAmount, setDueAmount] = useState(grandTotal - payAmount);
   const [isLoading, setIsLoading] = useState(false);
   const [isAddButtonDisabled, setIsAddButtonDisabled] = useState(false);
   const [contactNumberValue, setContactNumberValue] = useState("");
   const [newCustomer, setNewCustomer] = useState({});
   const [customerBalance, setCustomerBalance] = useState('');
-  
+
+  console.log(payAmount);
+
 
   const [startDate, setStartDate] = useState('');
 
@@ -232,7 +234,7 @@ const NewSale = () => {
   let salesInvoiceAmount = parseFloat(salesAmount).toFixed(2);
   useEffect(() => {
     setGrandTotal(salesInvoiceAmount);
-    setDueAmount(salesInvoiceAmount);
+    setDueAmount(salesInvoiceAmount - payAmount);
   }, [salesInvoiceAmount]);
 
   // delete temp product
@@ -310,20 +312,33 @@ const NewSale = () => {
     }
   };
 
-  const handlePayAmountOnchange = (event) => {
-    const payAmountValue = event.target.value;
-    const onlyNumberRegex = /^\d*\.?\d*$/;
-    if (onlyNumberRegex.test(payAmountValue)) {
-      setPayAmount(payAmountValue);
+  const handlePayAmountChange = (e) => {
+    const inputValue = e.target.value;
+
+    // Allow clearing the input
+    if (inputValue === "") {
+      setPayAmount(""); // Set payAmount to an empty string to clear the input
+      setDueAmount(grandTotal); // Reset dueAmount to the grand total
+      return;
     }
-    const payAmountNumber = parseFloat(
-      document.getElementById("pay-amount").value
-    );
-    const dueAmount = parseFloat(grandTotal - payAmountNumber).toFixed(2);
-    setDueAmount(dueAmount);
+
+    const value = parseFloat(inputValue) || 0; // Handle invalid or empty input gracefully
+    const fixedValue = value >= 0 ? parseFloat(value.toFixed(2)) : 0; // Ensure positive value with two decimal places
+    setPayAmount(fixedValue); // Update state for payAmount
+
+    const dueAmount = parseFloat(grandTotal - fixedValue).toFixed(2); // Calculate directly from the input value
+    setDueAmount(dueAmount); // Update state for dueAmount
   };
 
-  const navigate = useNavigate();
+
+
+  // const handlePayAmountOnchange = () => {
+  //   const dueAmount = parseFloat(grandTotal - payAmount).toFixed(2);
+  //   setDueAmount(dueAmount);
+
+  // };
+
+
 
   // contact number input onchange
   const handleInputContactNumber = (event) => {
@@ -354,9 +369,12 @@ const NewSale = () => {
     const customerName = e.target.customer_name.value;
     const customerMobile = e.target.customer_mobile.value;
     const customerAddress = e.target.customer_address.value;
-    const scheduleDate = moment(startDate).format("DD.MM.YYYY");
+    let scheduleDate = moment(startDate).format("DD.MM.YYYY");
     const sourceOfPaid = selected;
-    
+
+
+
+
 
 
     // Check if the form is already being submitted
@@ -369,7 +387,7 @@ const NewSale = () => {
       return toast.error("Invalid mobile number");
     }
 
-    
+
 
     const date = moment(new Date()).format("DD.MM.YYYY");
 
@@ -391,10 +409,18 @@ const NewSale = () => {
       setIsLoading(false); // Reset loading state
       return toast.error("Payment exceeded");
     }
-    if (sourceOfPaid && finalPayAmount > customerBalance) {
-      setIsLoading(false); // Reset loading state
-      return toast.error("Insufficient customer balance");
+
+
+
+    // if (sourceOfPaid && finalPayAmount > customerBalance) {
+    //   setIsLoading(false); // Reset loading state
+    //   return toast.error("Insufficient customer balance");
+    // }
+
+    if (!dueAmount) {
+      scheduleDate = 'Invalid date';
     }
+
 
 
 
@@ -409,6 +435,7 @@ const NewSale = () => {
       dueAmount,
       scheduleDate,
       sourceOfPaid,
+      customerBalance,
       profit,
       userName,
       userMail,
@@ -418,36 +445,36 @@ const NewSale = () => {
 
     console.log(salesInvoiceInfo);
 
-    axiosSecure
-      .post("/newSalesInvoice", salesInvoiceInfo)
-      .then((data) => {
-        if (data.data.insertedId) {
-          setReFetch(!reFetch);
-          Swal.fire({
-            title: "Success",
-            text: "Sales invoice created successfully",
-            icon: "success",
-          });
-          setItemsPerPage(20);
-          e.target.reset();
-          setDiscount("");
-          setGrandTotal("");
-          setPayAmount("");
-          setDueAmount("");
-          navigate("/sales");
-        } else {
-          Swal.fire({
-            text: data.data,
-            icon: "error",
-          });
-        }
-      })
-      .catch((error) => {
-        toast.error("Server error", error);
-      })
-      .finally(() => {
-        setIsLoading(false); // Reset loading state
-      });
+    // axiosSecure
+    //   .post("/newSalesInvoice", salesInvoiceInfo)
+    //   .then((data) => {
+    //     if (data.data.insertedId) {
+    //       setReFetch(!reFetch);
+    //       Swal.fire({
+    //         title: "Success",
+    //         text: "Sales invoice created successfully",
+    //         icon: "success",
+    //       });
+    //       setItemsPerPage(20);
+    //       e.target.reset();
+    //       setDiscount("");
+    //       setGrandTotal("");
+    //       setPayAmount("");
+    //       setDueAmount("");
+    //       navigate("/sales");
+    //     } else {
+    //       Swal.fire({
+    //         text: data.data,
+    //         icon: "error",
+    //       });
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     toast.error("Server error", error);
+    //   })
+    //   .finally(() => {
+    //     setIsLoading(false); // Reset loading state
+    //   });
   };
 
   return (
@@ -725,11 +752,11 @@ const NewSale = () => {
               <label className="flex gap-2 items-center">
                 <span className="w-36 font-bold">Pay Amount:</span>
                 <input
-                  type="text"
+                  type="number"
                   name="pay_amount"
                   id="pay-amount"
                   value={payAmount}
-                  onChange={handlePayAmountOnchange}
+                  onChange={handlePayAmountChange}
                   placeholder="Amount"
                   required
                   className="border py-1 px-2 rounded-md outline-none focus:bg-gray-200 w-full"
