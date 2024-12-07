@@ -47,7 +47,7 @@ const NewSale = () => {
   const [newCustomer, setNewCustomer] = useState({});
   const [customerBalance, setCustomerBalance] = useState('');
 
-  console.log(payAmount);
+
 
 
   const [startDate, setStartDate] = useState('');
@@ -361,8 +361,21 @@ const NewSale = () => {
   const customerDue = newCustomer.customerDue?.dueAmount;
 
 
+  const handleCustomerBalance = (e) => {
+    setSelected(e.target.checked);
+
+    if (!selected && customerBalance < payAmount) {
+      Swal.fire({
+        text: `You have to receive BDT: ${payAmount - customerBalance}`,
+        icon: "info",
+      });
+    };
+  };
 
 
+
+
+  const navigate = useNavigate();
   // ..........................................................................
   const handleProceed = (e) => {
     e.preventDefault();
@@ -419,7 +432,9 @@ const NewSale = () => {
 
     if (!dueAmount) {
       scheduleDate = 'Invalid date';
-    }
+    };
+
+
 
 
 
@@ -443,38 +458,86 @@ const NewSale = () => {
       customerAddress,
     };
 
-    console.log(salesInvoiceInfo);
 
-    // axiosSecure
-    //   .post("/newSalesInvoice", salesInvoiceInfo)
-    //   .then((data) => {
-    //     if (data.data.insertedId) {
-    //       setReFetch(!reFetch);
-    //       Swal.fire({
-    //         title: "Success",
-    //         text: "Sales invoice created successfully",
-    //         icon: "success",
-    //       });
-    //       setItemsPerPage(20);
-    //       e.target.reset();
-    //       setDiscount("");
-    //       setGrandTotal("");
-    //       setPayAmount("");
-    //       setDueAmount("");
-    //       navigate("/sales");
-    //     } else {
-    //       Swal.fire({
-    //         text: data.data,
-    //         icon: "error",
-    //       });
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     toast.error("Server error", error);
-    //   })
-    //   .finally(() => {
-    //     setIsLoading(false); // Reset loading state
-    //   });
+    if (!sourceOfPaid && customerBalance >= dueAmount) {
+      setIsLoading(false);
+      Swal.fire({
+        title: "Are you sure?",
+        text: "Customer has available balance to be paid",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, Proceed!"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          axiosSecure
+            .post("/newSalesInvoice", salesInvoiceInfo)
+            .then((data) => {
+              if (data.data.insertedId) {
+                setReFetch(!reFetch);
+                Swal.fire({
+                  title: "Success",
+                  text: "Sales invoice created successfully",
+                  icon: "success",
+                });
+                setItemsPerPage(20);
+                e.target.reset();
+                setDiscount("");
+                setGrandTotal("");
+                setPayAmount("");
+                setDueAmount("");
+                navigate("/sales");
+              } else {
+                Swal.fire({
+                  text: data.data,
+                  icon: "error",
+                });
+              }
+            })
+            .catch((error) => {
+              toast.error("Server error", error);
+            })
+            .finally(() => {
+              setIsLoading(false);
+            });
+
+        }
+      });
+    } else {
+      axiosSecure
+        .post("/newSalesInvoice", salesInvoiceInfo)
+        .then((data) => {
+          if (data.data.insertedId) {
+            setReFetch(!reFetch);
+            Swal.fire({
+              title: "Success",
+              text: "Sales invoice created successfully",
+              icon: "success",
+            });
+            setItemsPerPage(20);
+            e.target.reset();
+            setDiscount("");
+            setGrandTotal("");
+            setPayAmount("");
+            setDueAmount("");
+            navigate("/sales");
+          } else {
+            Swal.fire({
+              text: data.data,
+              icon: "error",
+            });
+          }
+        })
+        .catch((error) => {
+          toast.error("Server error", error);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    };
+
+
   };
 
   return (
@@ -678,18 +741,21 @@ const NewSale = () => {
                 />
               </label>
 
-              <label className="flex gap-2 items-center">
-                <span className="w-40 font-bold">Customer Balance:</span>
-                <input
-                  type="text"
-                  name="customer_balance"
-                  readOnly
-                  defaultValue={
-                    customerBalance
-                  }
-                  className={`border py-1 px-2 rounded-md outline-none w-full text-green-600`}
-                />
-              </label>
+              {
+                customerBalance > 0 &&
+                <label className="flex gap-2 items-center">
+                  <span className="w-40 font-bold">Customer Balance:</span>
+                  <input
+                    type="text"
+                    name="customer_balance"
+                    readOnly
+                    defaultValue={
+                      customerBalance
+                    }
+                    className={`border py-1 px-2 rounded-md outline-none w-full text-green-600`}
+                  />
+                </label>
+              }
 
 
               {
@@ -763,14 +829,17 @@ const NewSale = () => {
                 />
               </label>
 
-              <div className="flex gap-2 items-center justify-start">
-                <span className="w-[110px] font-bold">Receive from AC:</span>
-                <input
-                  type="checkbox"
-                  onChange={(e) => setSelected(e.target.checked)}
-                  className=""
-                />
-              </div>
+              {
+                customerBalance > 0 &&
+                <div className="flex gap-2 items-center justify-start">
+                  <span className="w-[110px] font-bold">Receive from AC:</span>
+                  <input
+                    type="checkbox"
+                    onClick={handleCustomerBalance}
+                    className=""
+                  />
+                </div>
+              }
 
               <label className="flex gap-2 items-center">
                 <span className="w-36 font-bold">Due Amount:</span>
