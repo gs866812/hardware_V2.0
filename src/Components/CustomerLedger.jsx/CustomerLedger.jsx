@@ -64,7 +64,7 @@ const CustomerLedger = () => {
   }, [reFetch]);
 
   // Make excel
-  // Get all customer for excel
+  // Get all lender for excel
   useEffect(() => {
     if (tokenReady && user?.email) {
       axiosProtect

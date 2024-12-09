@@ -5,19 +5,22 @@ import useAxiosSecure from '../Components/hooks/useAxiosSecure';
 import { CiSearch } from 'react-icons/ci';
 import useAxiosProtect from '../Components/hooks/useAxiosProtect';
 import moment from 'moment/moment';
+import { FaFileExcel, FaRegFileExcel } from 'react-icons/fa';
+import * as XLSX from "xlsx";
 
 
 const Debt = () => {
 
     const axiosSecure = useAxiosSecure();
     const axiosProtect = useAxiosProtect();
-    const { reFetch, setReFetch, userName, user, currentPage, setCurrentPage, setItemsPerPage, itemsPerPage } = useContext(ContextData);
+    const { reFetch, setReFetch, userName, user, currentPage, setCurrentPage, setItemsPerPage, itemsPerPage, tokenReady } = useContext(ContextData);
 
     const [isLoading, setIsLoading] = useState(false);
     const [contactNumber, setContactNumber] = useState("");
     const [borrowerName, setBorrowerName] = useState("");
     const [address, setAddress] = useState("");
     const [borrowerList, setBorrowerList] = useState([]);
+    const [allBorrowers, setAllBorrowers] = useState([]);
 
     const [receivedAmount, setReceivedAmount] = useState("");
     const [receiver, setReceiver] = useState("");
@@ -33,6 +36,8 @@ const Debt = () => {
     const [debtBalance, setDebtBalance] = useState(0);
     const [searchBorrower, setSearchBorrower] = useState("");
     const [borrowerCount, setBorrowerCount] = useState({});
+    const [debtHistory, setDebtHistory] = useState([]);
+
 
 
 
@@ -242,9 +247,85 @@ const Debt = () => {
             });
     };
 
+    // ----------------------------------------------------------
+    const handleHistory = (name, serial) => {
+        setPayer(name);
+        setSerial(serial);
+        document.getElementById(`debtHistory`).showModal();
+
+        const fetchDebtHistory = async () => {
+            try {
+                const res = await axiosProtect.get(`/debtHistory`, {
+                    params: {
+                        userEmail: user?.email,
+                        serial,
+                    },
+                });
+                setDebtHistory(res.data);
+            } catch (e) {
+                toast.error(`Error fetching data`, e);
+            }
+        };
+        fetchDebtHistory();
+    }
+    // ----------------------------------------------------------
+
     const handleInputChange = (event) => {
         setSearchBorrower(event.target.value);
         setCurrentPage(1); // reset to first page on new search
+    };
+
+    // get all borrower for excel data
+    useEffect(() => {
+        if (tokenReady && user?.email) {
+            const fetchBorrowerData = async () => {
+                try {
+                    const res = await axiosProtect.get(`/allBorrower`, {
+                        params: {
+                            userEmail: user?.email,
+                        },
+                    });
+
+                    setAllBorrowers(res.data);
+                } catch (e) {
+                    toast.error("Error fetching data:", e);
+                }
+            }
+            fetchBorrowerData();
+        }
+    }, [reFetch, tokenReady, axiosProtect, user?.email])
+
+    // excel download -------------------------------------------------------
+
+    const downloadExcel = () => {
+        // Format the data to include only the desired columns
+        const formattedData = allBorrowers.map((borrower) => ({
+            "ID": borrower.serial,
+            "Name": borrower.borrowerName,
+            "Mobile No": borrower.contactNumber,
+            "Address": borrower.address,
+            "Due Balance": borrower.crBalance,
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(formattedData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Debt List");
+        XLSX.writeFile(workbook, "Debt_list.xlsx");
+    };
+    const downloadExcelCurrent = () => {
+        // Format the data to include only the desired columns
+        const formattedData = borrowerList.map((borrower) => ({
+            "ID": borrower.serial,
+            "Name": borrower.borrowerName,
+            "Mobile No": borrower.contactNumber,
+            "Address": borrower.address,
+            "Due Balance": borrower.crBalance,
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(formattedData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Debt List");
+        XLSX.writeFile(workbook, "Debt_list.xlsx");
     };
 
 
@@ -322,6 +403,8 @@ const Debt = () => {
                 <div className="flex items-center justify-between mt-5">
                     <div className="flex gap-2 items-center">
                         <h2 className="text-2xl">Recent Transactions:</h2>
+                        <FaFileExcel className="w-[20px] h-[20%] cursor-pointer ml-5 text-red-600" title="Download full list" onClick={downloadExcel} />
+                        <FaRegFileExcel className="w-[20px] h-[20%] cursor-pointer text-green-600" title="Download current list" onClick={downloadExcelCurrent} />
                     </div>
                     <div className='flex items-center gap-1'>
                         <label className="flex gap-1 items-center border py-1 px-3 rounded-md">
@@ -371,7 +454,7 @@ const Debt = () => {
                                     <td className='w-[12%] bg-green-600 text-white cursor-pointer' onClick={(e) => handleReceiver(borrower.borrowerName, borrower.serial)}>Receive From</td>
 
                                     <td className='w-[10%] bg-red-500 text-white cursor-pointer' onClick={() => handlePayer(borrower.borrowerName, borrower.serial)}>Return To</td>
-                                    <td className='w-[8px] bg-yellow-500  cursor-pointer'>History</td>
+                                    <td className='w-[8px] bg-yellow-500  cursor-pointer' onClick={() => handleHistory(borrower.borrowerName, borrower.serial)}>History</td>
                                 </tr>
                             ))
                         }
@@ -615,6 +698,48 @@ const Debt = () => {
                 </div>
             </dialog>
             {/* given amount end */}
+
+            {/* history start */}
+            <dialog id="debtHistory" className="modal">
+                <div className="modal-box w-10/12 max-w-4xl">
+                    <h3 className="font-bold text-lg mb-3 uppercase">History of <span className='text-red-600'>{payer}</span></h3>
+                    <hr />
+                    <form method="dialog">
+                        {/* if there is a button in form, it will close the modal */}
+                        <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 text-white bg-red-400 hover:bg-red-500">
+                            ✕
+                        </button>
+                    </form>
+                    <div className='mt-5'>
+                        <div className="overflow-x-auto">
+                            <table className="table table-zebra">
+                                {/* head */}
+                                <thead>
+                                    <tr className="border bg-green-200 text-black">
+                                        <th>Date</th>
+                                        <th>Description</th>
+                                        <th>Payment Method</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {Array.isArray(debtHistory) &&
+                                        debtHistory.map((date, i) => (
+                                            <tr key={i}>
+                                                <td>{date.date}</td>
+                                                <td>{date.note}</td>
+                                                <td>{date.paymentMethod}</td>
+                                                <td>{date.amount}</td>
+                                               
+                                            </tr>
+                                        ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </dialog>
+            {/* history end */}
 
             {/* pagination */}
             {borrowerCount && (

@@ -459,7 +459,7 @@ const NewSale = () => {
     };
 
 
-    if (!sourceOfPaid && customerBalance >= dueAmount) {
+    if (!sourceOfPaid && customerBalance >= dueAmount && dueAmount != 0) {
       setIsLoading(false);
       Swal.fire({
         title: "Are you sure?",

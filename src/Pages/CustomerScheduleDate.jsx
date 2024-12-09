@@ -1,18 +1,15 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { CiSearch } from "react-icons/ci";
 import { ContextData } from '../Provider';
-import useAxiosSecure from '../Components/hooks/useAxiosSecure';
+import useAxiosProtect from '../Components/hooks/useAxiosProtect';
 
 const CustomerScheduleDate = () => {
 
     const { reFetch, user, setItemsPerPage, currentPage, itemsPerPage, setCurrentPage } = useContext(ContextData);
+
     const [searchDate, setSearchDate] = useState("");
     const [dateCount, setDateCount] = useState({});
     const [scheduleDate, setScheduleDate] = useState([]);
-
-    console.log(scheduleDate);
-
-
 
     // ----------------------------------------------------------------------------------------------------------
     useEffect(() => {
@@ -32,23 +29,30 @@ const CustomerScheduleDate = () => {
     };
 
     //---------------------------------------------------------------------------------------------------------
-    const axiosSecure = useAxiosSecure();
+
+    const axiosProtect = useAxiosProtect();
     useEffect(() => {
         const fetchPaymentDate = async () => {
-            const response = await axiosSecure.get(`/schedulePaymentDate`, {
-                params: {
-                    userEmail: user?.email,
-                    search: searchDate,
-                    page: currentPage,
-                    size: itemsPerPage,
-                },
-            });
-            setScheduleDate(response.data.result);
-            setDateCount(response.data.count)
+            try {
+                const response = await axiosProtect.get(`/schedulePaymentDate`, {
+                    params: {
+                        userEmail: user?.email,
+                        search: searchDate,
+                        page: currentPage,
+                        size: itemsPerPage,
+                    },
+                });
+                setScheduleDate(response.data.result);
+                setDateCount(response.data.count);
+            } catch (e) {
+                toast.error("Error fetching payment date:", e);
+            }
         };
 
         fetchPaymentDate();
-    }, [reFetch, currentPage, itemsPerPage, axiosSecure, searchDate, user?.email]);
+    }, [reFetch, currentPage, itemsPerPage, axiosProtect, searchDate, user?.email]);
+
+    
 
     // Pagination -----------------------------------------------------
     const totalItem = dateCount;
@@ -143,9 +147,9 @@ const CustomerScheduleDate = () => {
                             <tr className="border bg-green-200 text-black">
                                 <th className='w-[10%]'>Customer ID</th>
                                 <th>Customer Name</th>
-                                <th>Contact No.</th>
+                                <th className='w-[10%]'>Contact No.</th>
                                 <th>Address</th>
-                                <th>Payment Date</th>
+                                <th className='w-[10%]'>Payment Date</th>
                                 <th className='w-[10%]'>Due amount</th>
                             </tr>
                         </thead>
@@ -159,7 +163,7 @@ const CustomerScheduleDate = () => {
                                         <td>{date.contactNumber}</td>
                                         <td>{date.customerAddress}</td>
                                         <td className='bg-red-200'>{date.scheduleDate}</td>
-                                        <td>{date.dueAmount}</td>
+                                        <td>{parseFloat(date.dueAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                     </tr>
                                 ))}
                         </tbody>
