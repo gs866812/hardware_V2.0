@@ -2,6 +2,9 @@ import React, { useContext, useEffect, useState } from 'react';
 import { CiSearch } from "react-icons/ci";
 import { ContextData } from '../Provider';
 import useAxiosProtect from '../Components/hooks/useAxiosProtect';
+import DatePicker from 'react-datepicker';
+import { FaCalendarAlt } from "react-icons/fa";
+import moment from 'moment';
 
 const CustomerScheduleDate = () => {
 
@@ -10,6 +13,8 @@ const CustomerScheduleDate = () => {
     const [searchDate, setSearchDate] = useState("");
     const [dateCount, setDateCount] = useState({});
     const [scheduleDate, setScheduleDate] = useState([]);
+
+
 
     // ----------------------------------------------------------------------------------------------------------
     useEffect(() => {
@@ -27,6 +32,15 @@ const CustomerScheduleDate = () => {
         setSearchDate(event.target.value);
         setCurrentPage(1); // reset to first page on new search
     };
+
+
+
+    const searchingByDate = (date) => {
+
+        setSearchDate(moment(date).format("DD.MM.YYYY")); // Update state
+
+    };
+
 
     //---------------------------------------------------------------------------------------------------------
 
@@ -52,7 +66,9 @@ const CustomerScheduleDate = () => {
         fetchPaymentDate();
     }, [reFetch, currentPage, itemsPerPage, axiosProtect, searchDate, user?.email]);
 
-    
+
+
+
 
     // Pagination -----------------------------------------------------
     const totalItem = dateCount;
@@ -118,23 +134,44 @@ const CustomerScheduleDate = () => {
         // any other logic to handle page change
     };
 
+    // ----------------------
+
     return (
         <div className="mt-5 px-2">
             <div className="flex items-center justify-between">
                 <div className="flex items-center">
                     <h2 className="text-2xl uppercase font-bold">Customer Payment Date:</h2>
                 </div>
-                <label className="flex gap-1 items-center border py-1 px-3 rounded-md">
-                    <input
-                        onChange={handleInputChange}
-                        type="text"
-                        name="search"
-                        placeholder="Search"
-                        className=" hover:outline-none outline-none"
-                        size="13"
+                <div className='flex items-center gap-1'>
+                    <DatePicker
+                        dateFormat="dd.MM.yyyy"
+
+                        onChange={searchingByDate}
+                        className="px-1 rounded-sm ml-1"
+                        customInput={
+                            <button className="flex items-center justify-center p-2 border rounded">
+                                <FaCalendarAlt />
+                            </button>
+                        }
                     />
-                    <CiSearch />
-                </label>
+
+                    <label className="flex gap-1 items-center border py-1 px-3 rounded-md">
+                        <input
+                            onChange={handleInputChange}
+                            type="text"
+                            name="search"
+                            placeholder="Search"
+                            className=" hover:outline-none outline-none"
+                            size="13"
+                        />
+                        <CiSearch />
+
+                    </label>
+                    <button className="border bg-red-500 text-white font-semibold px-2 py-1 rounded-md" onClick={() => {setSearchDate("")}}>
+                        X
+                    </button>
+
+                </div>
             </div>
 
             {/* table */}

@@ -37,6 +37,7 @@ const Lend = () => {
 
     const [lendBalance, setLendBalance] = useState(0);
     const [lenderCount, setLenderCount] = useState({});
+    const [lendHistory, setLendHistory] = useState([]);
 
     // ----------------------------------------------------------------------------
     // contact number input onchange
@@ -249,6 +250,28 @@ const Lend = () => {
             });
     };
 
+    // ----------------------------------------------------------
+    const handleHistory = (name, serial) => {
+        setPayer(name);
+        setSerial(serial);
+        document.getElementById(`lendHistory`).showModal();
+
+        const fetchLendHistory = async () => {
+            try {
+                const res = await axiosProtect.get(`/lendHistory`, {
+                    params: {
+                        userEmail: user?.email,
+                        serial,
+                    },
+                });
+                setLendHistory(res.data.reverse());
+            } catch (e) {
+                toast.error(`Error fetching data`, e);
+            }
+        };
+        fetchLendHistory();
+    }
+
 
     // get all borrower for excel data
 
@@ -429,7 +452,7 @@ const Lend = () => {
                                     <td className='w-[8%] bg-green-600 text-white cursor-pointer' onClick={(e) => handleReceiver(lender.lenderName, lender.serial)}>Lend To</td>
 
                                     <td className='w-[11%] bg-red-500 text-white cursor-pointer' onClick={() => handlePayer(lender.lenderName, lender.serial)}>Return From</td>
-                                    <td className='w-[8px] bg-yellow-500  cursor-pointer'>History</td>
+                                    <td className='w-[8px] bg-yellow-500  cursor-pointer' onClick={() => handleHistory(lender.lenderName, lender.serial)}>History</td>
                                 </tr>
                             ))
                         }
@@ -673,6 +696,49 @@ const Lend = () => {
                 </div>
             </dialog>
             {/* given amount end */}
+
+            {/* history start */}
+            <dialog id="lendHistory" className="modal">
+                <div className="modal-box w-10/12 max-w-4xl">
+                    <h3 className="font-bold text-lg mb-3 uppercase">History of <span className='text-red-600'>{payer}</span></h3>
+                    <hr />
+                    <form method="dialog">
+                        {/* if there is a button in form, it will close the modal */}
+                        <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 text-white bg-red-400 hover:bg-red-500">
+                            ✕
+                        </button>
+                    </form>
+                    <div className='mt-5'>
+                        <div className="overflow-x-auto">
+                            <table className="table table-zebra">
+                                {/* head */}
+                                <thead>
+                                    <tr className="border bg-green-200 text-black">
+                                        <th className='w-[10%]'>Date</th>
+                                        <th>Description</th>
+                                        <th className='w-[10%]'>Payment Method</th>
+                                        <th className='w-[10%]'>Amount</th>
+                                        <th className='w-[10%]'>User</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {Array.isArray(lendHistory) &&
+                                        lendHistory.map((date, i) => (
+                                            <tr key={i}>
+                                                <td>{date.date}</td>
+                                                <td>{date.note}</td>
+                                                <td>{date.paymentMethod}</td>
+                                                <td>{date.amount}</td>
+                                                <td>{date.userName}</td>
+                                            </tr>
+                                        ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </dialog>
+            {/* history end */}
             {/* pagination */}
             {lenderCount && (
                 <div className="my-8 flex justify-center gap-1">
