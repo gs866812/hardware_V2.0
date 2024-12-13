@@ -7,6 +7,7 @@ import moment from "moment";
 import { toast } from "react-toastify";
 import useAxiosProtect from "../hooks/useAxiosProtect";
 import { IoEyeOutline } from "react-icons/io5";
+import DatePicker from "react-datepicker";
 
 const SingleCustomerLedger = () => {
   const [singleCustomer, setSingleCustomer] = useState([]);
@@ -22,10 +23,14 @@ const SingleCustomerLedger = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [note, setNote] = useState("");
   const [method, setMethod] = useState("");
+  const [discountAmount, setDiscountAmount] = useState(0);
+  let [stillDue, setStillDue] = useState(true);
+  const [startDate, setStartDate] = useState('');
 
   const location = useLocation();
   const pathParts = location.pathname.split("/");
   const id = pathParts[pathParts.length - 1]; // Get the last part of the pathname
+
 
   // search input onchange
   const handleInputChange = (event) => {
@@ -58,10 +63,39 @@ const SingleCustomerLedger = () => {
   );
 
   const handlePayAmount = (event) => {
+
     const payValue = event.target.value;
     const onlyNumberRegex = /^\d*\.?\d*$/;
     if (onlyNumberRegex.test(payValue)) {
       setPayAmount(payValue);
+    }
+  };
+
+  const handleDueReceivedPayAmount = (event) => {
+    const customerDue = singleCustomer.dueAmount;
+    const payValue = event.target.value;
+    const onlyNumberRegex = /^\d*\.?\d*$/;
+    if (onlyNumberRegex.test(payValue)) {
+      setPayAmount(payValue);
+    }
+
+    const parsePaymentValue = parseFloat(payValue);
+    if (parsePaymentValue > customerDue) {
+      setPayAmount(customerDue);
+    }
+    if (parsePaymentValue >= customerDue) {
+      setStillDue(false);
+    } else setStillDue(true);
+  };
+
+  console.log({payAmount, stillDue});
+
+
+  const handleDiscountAmount = (event) => {
+    const payValue = event.target.value;
+    const onlyNumberRegex = /^\d*\.?\d*$/;
+    if (onlyNumberRegex.test(payValue)) {
+      setDiscountAmount(payValue);
     }
   };
 
@@ -78,6 +112,8 @@ const SingleCustomerLedger = () => {
     setNote("");
     setMethod("");
     setConfirmAmount("");
+    setDiscountAmount("");
+    setStartDate("");
   };
   // handle rcv by account
   const handleReceivedByAccount = () => {
@@ -132,7 +168,7 @@ const SingleCustomerLedger = () => {
         setIsLoading(false); // Reset loading state
       });
   };
-  //   ...............................
+  //.............................................................................................
   const handlePayment = (e) => {
     e.preventDefault();
     if (isLoading) return;
@@ -141,10 +177,12 @@ const SingleCustomerLedger = () => {
     const date = moment(new Date()).format("DD.MM.YYYY");
     const form = e.target;
     const paidAmount = parseFloat(payAmount);
+    const discount = parseFloat(discountAmount);
+    let scheduleDate = moment(startDate).format("DD.MM.YYYY");
     const paymentMethod = method;
     const payNote = note;
 
-    const paymentInfo = { date, paidAmount, paymentMethod, payNote, userName };
+    const paymentInfo = { date, paidAmount, discount, scheduleDate, paymentMethod, payNote, userName };
     if (paidAmount > singleCustomer.dueAmount) {
       setIsLoading(false); // Reset loading state
       return toast.error("Can't over payment");
@@ -409,7 +447,7 @@ const SingleCustomerLedger = () => {
           Sales Invoice History
         </h2>
         <h2 className="text-xl">
-          {singleCustomer?.scheduleDate != "Invalid date"?
+          {singleCustomer?.scheduleDate != "Invalid date" ?
             <p>Schedule Payment Date: <span className="text-red-600">{singleCustomer.scheduleDate}</span></p> : null
           }
         </h2>
@@ -551,6 +589,7 @@ const SingleCustomerLedger = () => {
                 />
               </label>
 
+
               <label className="flex items-center">
                 <p className="w-1/2 font-semibold">Note:</p>{" "}
                 <input
@@ -677,10 +716,22 @@ const SingleCustomerLedger = () => {
                   type="text"
                   name="pay_amount"
                   placeholder="Pay amount"
-                  onChange={handlePayAmount}
+                  onChange={handleDueReceivedPayAmount}
                   value={payAmount}
                   className="py-1 px-2 rounded-md outline-none border w-full"
                   required
+                />
+              </label>
+              <label className="flex items-center">
+                <p className="w-1/2 font-semibold">Discount:</p>{" "}
+                <input
+                  type="text"
+                  name="discount_amount"
+                  placeholder="Discount amount"
+                  onChange={handleDiscountAmount}
+                  value={discountAmount}
+                  readOnly={stillDue}
+                  className="py-1 px-2 rounded-md outline-none border w-full"
                 />
               </label>
 
@@ -695,6 +746,23 @@ const SingleCustomerLedger = () => {
                   required
                 />
               </label>
+              {
+                stillDue &&
+                <label className="flex items-center">
+                <p className="w-1/3 font-semibold">Schedule Date:</p>{" "}
+                <DatePicker
+                  dateFormat="dd.MM.yyyy"
+                  selected={startDate}
+                  onChange={(date) => {
+                    setStartDate(date); // Update state
+                  }}
+                  placeholderText="Select a date"
+                  required
+                  minDate={new Date()}
+                  className="py-1 px-2 rounded-md outline-none border w-full"
+                />
+              </label>
+              }
 
               <label className="flex items-center">
                 <p className="w-1/2 font-semibold">Note:</p>{" "}

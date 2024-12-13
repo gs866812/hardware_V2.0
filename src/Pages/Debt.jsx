@@ -698,6 +698,47 @@ const Debt = () => {
                 </div>
             </dialog>
             {/* given amount end */}
+            {/* history start */}
+            <dialog id="debtHistory" className="modal">
+                <div className="modal-box w-10/12 max-w-4xl">
+                    <h3 className="font-bold text-lg mb-3 uppercase">History of <span className='text-red-600'>{payer}</span></h3>
+                    <hr />
+                    <form method="dialog">
+                        {/* if there is a button in form, it will close the modal */}
+                        <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 text-white bg-red-400 hover:bg-red-500">
+                            ✕
+                        </button>
+                    </form>
+                    <div className='mt-5'>
+                        <div className="overflow-x-auto">
+                            <table className="table table-zebra">
+                                {/* head */}
+                                <thead>
+                                    <tr className="border bg-green-200 text-black">
+                                        <th className='w-[10%]'>Date</th>
+                                        <th>Description</th>
+                                        <th className='w-[10%]'>Payment Method</th>
+                                        <th className='w-[10%]'>Amount</th>
+                                        <th className='w-[10%]'>User</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {Array.isArray(debtHistory) &&
+                                        debtHistory.map((date, i) => (
+                                            <tr key={i}>
+                                                <td>{date.date}</td>
+                                                <td>{date.note}</td>
+                                                <td>{date.paymentMethod}</td>
+                                                <td>{date.amount}</td>
+                                                <td>{date.userName}</td>
+                                            </tr>
+                                        ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </dialog>
 
 
 
