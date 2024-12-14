@@ -5,16 +5,21 @@ import { ContextData } from "../Provider";
 import { toast } from "react-toastify";
 import useAxiosSecure from "../Components/hooks/useAxiosSecure";
 import useAxiosProtect from "../Components/hooks/useAxiosProtect";
+import { FaFileExcel, FaRegFileExcel } from "react-icons/fa";
+import * as XLSX from "xlsx";
 
 const Expense = () => {
+  const { mainBalance, reFetch, setMainBalance, user, tokenReady } = useContext(ContextData);
+
   const axiosSecure = useAxiosSecure();
   const axiosProtect = useAxiosProtect();
+
   const [costingBalance, setCostingBalance] = useState([]);
   const [transaction, setTransaction] = useState([]);
+  const [allTransaction, setAllTransaction] = useState([]);
   const [profit, setProfit] = useState([]);
   const [count, setCount] = useState({});
-  const { mainBalance, reFetch, setMainBalance, user } =
-    useContext(ContextData);
+
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,6 +29,7 @@ const Expense = () => {
   const currentBalance = parseFloat(parseBalance).toLocaleString(undefined, {
     minimumFractionDigits: 2,
   });
+
 
   // get costing balance
   useEffect(() => {
@@ -64,6 +70,64 @@ const Expense = () => {
       });
   }, [reFetch]);
 
+
+
+  // ----------------------------------------
+  // Make excel
+  // Get all transaction for excel
+  useEffect(() => {
+    if (tokenReady && user?.email) {
+      axiosProtect
+        .get(`/getAllTransaction`, {
+          params: {
+            userEmail: user?.email,
+          },
+        })
+        .then((data) => {
+          setAllTransaction(data.data);
+        })
+        .catch((err) => {
+          toast.error("Server error", err);
+        });
+    }
+
+  }, [reFetch, tokenReady, axiosProtect, user?.email]);
+  // ----------------------------------------
+  const downloadExcel = () => {
+    // Format the data to include only the desired columns
+    const formattedData = allTransaction.map((trans) => ({
+      "Serial No": trans.serial,
+      "Date": trans.date,
+      "Description": trans.note,
+      "Amount": trans.totalBalance,
+      "Type": trans.type,
+      "User": trans.userName,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Transaction List");
+    XLSX.writeFile(workbook, "Transaction_list.xlsx");
+  };
+
+  // ----------------------------------------
+  const downloadExcelCurrent = () => {
+    // Format the data to include only the desired columns
+    const formattedData = transaction.map((trans) => ({
+      "Serial No": trans.serial,
+      "Date": trans.date,
+      "Description": trans.note,
+      "Amount": trans.totalBalance,
+      "Type": trans.type,
+      "User": trans.userName,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Transaction List");
+    XLSX.writeFile(workbook, "Current_transaction_list.xlsx");
+  };
+  // ----------------------------------------
   // show transactions
   useEffect(() => {
     axiosProtect
@@ -91,6 +155,7 @@ const Expense = () => {
         toast.error("Server error", err);
       });
   }, [reFetch]);
+  // ----------------------------------------
 
   // Pagination
   const totalItem = count;
@@ -197,7 +262,7 @@ const Expense = () => {
         <div className="w-full bg">
           <div className="flex flex-col gap-3 justify-center border px-3 py-6 shadow-lg text-center rounded-md bg-yellow-500 text-white">
             <h2 className="text-2xl font-bold">
-              BDT: {parseFloat((profit[0]?.profitBalance || 0)).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits: 2})}
+              BDT: {parseFloat((profit[0]?.profitBalance || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </h2>
             <p>Total Profit</p>
           </div>
@@ -207,9 +272,15 @@ const Expense = () => {
       <div className="pb-5">
         <div className="sticky top-0 z-50 bg-white ">
           <div className="flex justify-between items-center py-2">
-            <h2 className="py-2 text-xl uppercase font-bold">
-              Recent transactions
-            </h2>
+            <div className="flex items-center">
+              <h2 className="py-2 text-xl uppercase font-bold">
+                Recent transactions
+              </h2>
+              <span className="flex items-center gap-2">
+                <FaFileExcel className="w-[20px] h-[20%] cursor-pointer ml-5 text-red-600" title="Download full list" onClick={downloadExcel} />
+                <FaRegFileExcel className="w-[20px] h-[20%] cursor-pointer text-green-600" title="Download current list" onClick={downloadExcelCurrent} />
+              </span>
+            </div>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -297,9 +368,8 @@ const Expense = () => {
             <button
               key={index}
               onClick={() => typeof page === "number" && handlePageClick(page)}
-              className={`py-2 px-5 bg-green-500 text-white rounded-md hover:bg-gray-600 ${
-                currentPage === page ? "!bg-gray-600" : ""
-              }`}
+              className={`py-2 px-5 bg-green-500 text-white rounded-md hover:bg-gray-600 ${currentPage === page ? "!bg-gray-600" : ""
+                }`}
               disabled={typeof page !== "number"}
             >
               {page}

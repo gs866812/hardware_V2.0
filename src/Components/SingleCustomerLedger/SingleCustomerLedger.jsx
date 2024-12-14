@@ -86,9 +86,12 @@ const SingleCustomerLedger = () => {
     if (parsePaymentValue >= customerDue) {
       setStillDue(false);
     } else setStillDue(true);
+
+    if(parsePaymentValue < discountAmount){
+      setDiscountAmount(0);
+    }
   };
 
-  console.log({payAmount, stillDue});
 
 
   const handleDiscountAmount = (event) => {
@@ -97,6 +100,11 @@ const SingleCustomerLedger = () => {
     if (onlyNumberRegex.test(payValue)) {
       setDiscountAmount(payValue);
     }
+    const parseAmount = parseFloat(payValue);
+    if(parseAmount > payAmount){
+      setDiscountAmount(payAmount);
+    };
+    console.log(payAmount, parseAmount);
   };
 
   const handleConfirmAmount = (event) => {
@@ -698,7 +706,7 @@ const SingleCustomerLedger = () => {
       {/* pay  modal */}
       <div>
         <dialog id="payDue" className="modal">
-          <div className="modal-box">
+          <div className="modal-box h-[80%]">
             <h3 className="font-bold text-lg mb-3 uppercase">
               Customer payment:
             </h3>
