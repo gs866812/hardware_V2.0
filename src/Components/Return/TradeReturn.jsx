@@ -117,17 +117,22 @@ const TradeReturn = () => {
     const invoiceNumber = parseInt(supplierInvoiceNumberValue);
 
     if (tokenReady && user?.email) {
-      axiosSecure
+      axiosProtect
         .get(`/returnSupplierInvoice/${invoiceNumber}`, {
           params: {
             userEmail: user?.email,
           },
         })
         .then((res) => {
-          if (res.data.message) {
-            return toast.error(res.data.message);
+          let fetchedInvoice = res.data;
+          if (fetchedInvoice.finalPayAmount >= fetchedInvoice.grandTotal) {
+            fetchedInvoice.finalPayAmount = fetchedInvoice.grandTotal;
           }
-          setSupplierInvoice(res.data);
+          if (fetchedInvoice.modified) {
+            toast.info(`Invoice modifying for ${res.data.modified} times`);
+          }
+
+          setSupplierInvoice(fetchedInvoice);
         })
         .catch((err) => {
           toast.error(err);
@@ -234,7 +239,8 @@ const TradeReturn = () => {
       const newGrandTotal = calculateSupplierGrandTotal(updatedProductList);
       const newTotalAmount = newGrandTotal;
       const newDueAmount = newGrandTotal - prevInvoice.finalPayAmount;
-      const modified = "yes";
+      const modified = (prevInvoice.modified || 0) + 1;
+
 
       setNewGrandTotal(newGrandTotal);
 
@@ -571,7 +577,7 @@ const TradeReturn = () => {
         )}
       </div>
       {/* supplier */}
-      <div id="supplier" className="mb-5">
+      <div id="supplier" className="mb-5 border p-4 mt-5 rounded-md shadow-md">
         {supplierInvoice && (
           <div className="mt-5">
             <h3 className="font-bold">Supplier Invoice Details:</h3>
@@ -606,36 +612,44 @@ const TradeReturn = () => {
                       <input
                         className="border rounded w-full text-center bg-red-300"
                         type="number"
-                        value={product.salesQuantity}
-                        onChange={(e) =>
-                          handleUpdateProductQuantity(
+                        value={product.purchaseQuantity}
+                        onChange={(e) => {
+                          let newValue = e.target.value;
+                          const initialQuantity =
+                            initialQuantitiesRef.current[product.productID];
+
+                          // If the field is cleared or a negative value is entered, reset to initial value
+                          if (newValue === "") {
+                            newValue = initialQuantity; // Reset to initial quantity
+                          } else if (parseInt(newValue) > initialQuantity) {
+                            newValue = initialQuantity; // Cap at the maximum allowed
+                          }
+
+                          handleSupplierUpdateProductQuantity(
                             product.productID,
-                            parseInt(e.target.value)
-                          )
-                        }
+                            parseInt(newValue)
+                          );
+                        }}
                         onBlur={(e) => {
                           const initialQuantity =
                             initialQuantitiesRef.current[product.productID];
                           let newValue = parseInt(e.target.value);
 
-                          if (newValue < 0 || newValue > initialQuantity) {
+                          // If the value is empty or invalid, reset it to the initial quantity
+                          if (
+                            isNaN(newValue) ||
+                            newValue === "" ||
+                            newValue < 0
+                          ) {
                             newValue = initialQuantity;
+                          } else if (newValue > initialQuantity) {
+                            newValue = initialQuantity; // Cap at the maximum allowed
                           }
 
-                          handleUpdateProductQuantity(
+                          handleSupplierUpdateProductQuantity(
                             product.productID,
                             newValue
                           );
-                        }}
-                        onKeyDown={(e) => {
-                          // Prevent manual typing by disabling all keys except the arrow keys
-                          if (
-                            e.key !== "ArrowUp" &&
-                            e.key !== "ArrowDown" &&
-                            e.key !== "Tab" // Allow Tab for navigation
-                          ) {
-                            e.preventDefault();
-                          }
                         }}
                       />
                     </td>

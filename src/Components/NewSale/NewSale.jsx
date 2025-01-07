@@ -46,6 +46,10 @@ const NewSale = () => {
   const [contactNumberValue, setContactNumberValue] = useState("");
   const [newCustomer, setNewCustomer] = useState({});
   const [customerBalance, setCustomerBalance] = useState('');
+  const [labourCost, setLabourCost] = useState(0);
+  const [transportCost, setTransportCost] = useState(0);
+
+
 
 
 
@@ -376,6 +380,8 @@ const NewSale = () => {
 
 
   const navigate = useNavigate();
+  
+
   // ..........................................................................
   const handleProceed = (e) => {
     e.preventDefault();
@@ -384,9 +390,8 @@ const NewSale = () => {
     const customerAddress = e.target.customer_address.value;
     let scheduleDate = moment(startDate).format("DD.MM.YYYY");
     const sourceOfPaid = selected;
-
-
-
+    const parsingLabourCost = parseFloat(labourCost);
+    const parsingTransportCost = parseFloat(transportCost);
 
 
 
@@ -456,6 +461,8 @@ const NewSale = () => {
       userMail,
       customerMobile,
       customerAddress,
+      labourCost: parsingLabourCost,
+      transportCost: parsingTransportCost,
     };
 
 
@@ -851,6 +858,27 @@ const NewSale = () => {
                   className="border py-1 px-2 rounded-md outline-none bg-red-200 cursor-not-allowed w-full"
                 />
               </label>
+              <label className="flex gap-2 items-center">
+                <span className="w-36 font-bold">Labor Cost:</span>
+                <input
+                  type="text"
+                  name="labour_cost"
+                  value={labourCost}
+                  onChange={(e) => setLabourCost(e.target.value)}
+                  className="border py-1 px-2 rounded-md outline-none w-full"
+                />
+              </label>
+              <label className="flex gap-2 items-center">
+                <span className="w-36 font-bold text-sm">Transport Cost:</span>
+                <input
+                  type="text"
+                  name="transport_cost"
+                  value={transportCost}
+                  onChange={(e) => setTransportCost(e.target.value)}
+                  className="border py-1 px-2 rounded-md outline-none w-full"
+                />
+              </label>
+              
             </div>
 
             {/* Action Buttons at the bottom, spanning both columns */}

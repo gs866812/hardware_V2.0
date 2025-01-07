@@ -69,7 +69,7 @@ const PurchaseInvoice = () => {
           style={{ width: "100%", borderCollapse: "collapse" }}
         >
           <tbody>
-            <tr>
+            <tr className="">
               <td>Supplier:</td>
               <td className="w-[20%]">Invoice number</td>
               <td className="w-[18%]">{invoice.invoiceNumber}</td>
