@@ -365,6 +365,7 @@ const NewSale = () => {
   const customerDue = newCustomer.customerDue?.dueAmount;
 
 
+
   const handleCustomerBalance = (e) => {
     setSelected(e.target.checked);
 
@@ -463,6 +464,7 @@ const NewSale = () => {
       customerAddress,
       labourCost: parsingLabourCost,
       transportCost: parsingTransportCost,
+      prevDue: customerDue || 0,
     };
 
 

@@ -9,6 +9,8 @@ const PdfInvoice = () => {
   const { user } = useContext(ContextData);
   const axiosProtect = useAxiosProtect();
   const [invoice, setInvoice] = useState({});
+  const [currentDue, setCurrentDue] = useState(0);
+
 
   const location = useLocation();
   const pathParts = location.pathname.split("/");
@@ -32,6 +34,26 @@ const PdfInvoice = () => {
         });
     }
   }, [user, NID, axiosProtect]);
+
+  useEffect(() => {
+    if (user && invoice.customerSerial) {
+      axiosProtect
+        .get("/getCustomerDue", {
+          params: {
+            userEmail: user.email,
+            customerID: invoice.customerSerial,
+          },
+        })
+        .then((res) => {
+          setCurrentDue(res.data.dueAmount);
+        })
+        .catch((err) => {
+          toast.error("Server error", err);
+        });
+    }
+  }, [user, invoice.customerSerial, axiosProtect]);
+
+
 
   const handlePrint = () => {
     const printSection = document.getElementById("printSection");
@@ -182,19 +204,46 @@ const PdfInvoice = () => {
                 {parseFloat(invoice.grandTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>
             </tr>
+            {
+              invoice.labourCost && invoice.labourCost > 0 &&
+              <tr>
+              <td>Labor Cost</td>
+              <td className="text-right">
+                {parseFloat(invoice.labourCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </td>
+            </tr>
+            }
+            {
+              invoice.transportCost && invoice.transportCost > 0 &&
+              <tr>
+              <td>Transport Cost</td>
+              <td className="text-right">
+                {parseFloat(invoice.transportCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </td>
+            </tr>
+            }
             <tr>
               <td>Paid Amount</td>
               <td className="text-right">
                 {parseFloat(invoice.finalPayAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>
             </tr>
-            <tr className={`${invoice.refund <= 0 && invoice.dueAmount <= 0? 'hidden': ''}`}>
+            {
+              invoice.prevDue && invoice.prevDue >= 0 &&
+              <tr>
+              <td>Previous Due</td>
+              <td className="text-right">
+                {parseFloat(invoice.prevDue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </td>
+            </tr>
+            }
+            <tr className={`${invoice.refund <= 0 && invoice.dueAmount <= 0 && invoice.prevDue <= 0 && currentDue <= 0? 'hidden': ''}`}>
               <td>{invoice.refund > 0?
-              'Refund after deductions' : 'Due Amount'
+              'Refund after deductions' : 'Current Due'
               }</td>
               <td className="text-right">
                 {invoice.refund > 0?
-                `${parseFloat(invoice.refund).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0 }` : `${parseFloat(invoice.dueAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0 }`
+                `${parseFloat(invoice.refund).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0 }` : `${parseFloat(currentDue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0 }`
                 }
               </td>
             </tr>

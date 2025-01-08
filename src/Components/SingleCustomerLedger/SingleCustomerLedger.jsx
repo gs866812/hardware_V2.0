@@ -104,7 +104,6 @@ const SingleCustomerLedger = () => {
     if(parseAmount > payAmount){
       setDiscountAmount(payAmount);
     };
-    console.log(payAmount, parseAmount);
   };
 
   const handleConfirmAmount = (event) => {
