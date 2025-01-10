@@ -14,6 +14,7 @@ import {
   FcList,
   FcLowPriority,
   FcPaid,
+  FcRatings,
   FcShop,
 } from "react-icons/fc";
 import { FaAngleDown, FaAnglesUp, FaAngleUp, FaUser } from "react-icons/fa6";
@@ -209,7 +210,7 @@ const Sidebar = () => {
 
 
         {/*  */}
-        <div className={`text-white rounded-md mt-1 ${isOpen ? 'bg-gray-600' : ''}`}>
+        <div className={`text-white rounded-md mt-1 animate__animated animate__backInDown ${isOpen ? 'bg-gray-600' : ''}`}>
           <div
             className={`flex items-center justify-between cursor-pointer p-2 w-full hover:text-white gap-2 hover:bg-gray-600 mb-[1px] rounded-md ${isOpen ? 'hover:bg-none' : ''}`}
             onClick={toggleDropdown}
@@ -248,7 +249,7 @@ const Sidebar = () => {
 
 
         {/*  */}
-        <div className={`text-white rounded-md mt-1 ${isOpenExpense ? 'bg-gray-600' : ''}`}>
+        <div className={`text-white rounded-md mt-1 animate__animated animate__backInDown ${isOpenExpense ? 'bg-gray-600' : ''}`}>
           <div
             className={`flex items-center justify-between cursor-pointer p-2 w-full hover:text-white gap-2 hover:bg-gray-600 mb-[1px] rounded-md ${isOpenExpense ? 'hover:bg-none' : ''}`}
             onClick={toggleDropdownExpense}
@@ -357,7 +358,7 @@ const Sidebar = () => {
 
 
         {/*  */}
-        <div className={`text-white rounded-md mt-1 ${isOpenDebt ? 'bg-gray-600' : ''}`}>
+        <div className={`text-white rounded-md mt-1 animate__animated animate__backInDown ${isOpenDebt ? 'bg-gray-600' : ''}`}>
           <div
             className={`flex items-center justify-between cursor-pointer p-2 w-full hover:text-white gap-2 hover:bg-gray-600 mb-[1px] rounded-md ${isOpenExpense ? 'hover:bg-none' : ''}`}
             onClick={toggleDropdownDebt}
@@ -390,6 +391,15 @@ const Sidebar = () => {
 
 
 
+        <div className=" animate__animated animate__backInDown mt-1">
+          <NavLink
+            to="/dailySummaryReport"
+            className="p-2 w-full hover:text-white flex items-center gap-2 hover:bg-[#151515] mb-[1px] rounded-md"
+          >
+            <FcRatings className="text-xl" />
+            Daily Summary Report{" "}
+          </NavLink>
+        </div>
         <div className=" animate__animated animate__backInDown mt-1">
           <NavLink
             to="/return"
