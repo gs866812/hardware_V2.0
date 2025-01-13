@@ -13,7 +13,10 @@ const SingleCustomerLedger = () => {
   const [singleCustomer, setSingleCustomer] = useState([]);
   const axiosSecure = useAxiosSecure();
   const axiosProtect = useAxiosProtect();
+
   const { reFetch, setReFetch, userName, user } = useContext(ContextData);
+
+
   const [filteredSalesHistory, setFilteredSalesHistory] = useState([]);
   const [payAmount, setPayAmount] = useState("");
   const [confirmAmount, setConfirmAmount] = useState("");
@@ -26,6 +29,9 @@ const SingleCustomerLedger = () => {
   const [discountAmount, setDiscountAmount] = useState(0);
   let [stillDue, setStillDue] = useState(true);
   const [startDate, setStartDate] = useState('');
+  const [borrowerList, setBorrowerList] = useState([]);
+  const [borrowerCount, setBorrowerCount] = useState({});
+
 
   const location = useLocation();
   const pathParts = location.pathname.split("/");
@@ -57,6 +63,30 @@ const SingleCustomerLedger = () => {
   }, [reFetch, searchTerm, currentPage, itemsPerPage]);
   //
 
+  // ----------------------------------------------------------------------------
+
+  const currentCustomer = borrowerList.find(account => account.contactNumber === singleCustomer.contactNumber);
+
+
+  useEffect(() => {
+    axiosProtect
+      .get(`/borrowerList`, {
+        params: {
+          userEmail: user?.email,
+          page: currentPage,
+          size: itemsPerPage,
+        },
+      })
+      .then((res) => {
+        setBorrowerList(res.data.result);
+        setBorrowerCount(res.data.count)
+      })
+      .catch((err) => {
+        toast.error(err);
+      });
+  }, [reFetch, axiosProtect, user?.email]);
+  // ----------------------------------------------------------------------------
+
   const totalPaid = singleCustomer?.paymentHistory?.reduce(
     (acc, item) => acc + item.paidAmount,
     0
@@ -87,7 +117,7 @@ const SingleCustomerLedger = () => {
       setStillDue(false);
     } else setStillDue(true);
 
-    if(parsePaymentValue < discountAmount){
+    if (parsePaymentValue < discountAmount) {
       setDiscountAmount(0);
     }
   };
@@ -101,7 +131,7 @@ const SingleCustomerLedger = () => {
       setDiscountAmount(payValue);
     }
     const parseAmount = parseFloat(payValue);
-    if(parseAmount > payAmount){
+    if (parseAmount > payAmount) {
       setDiscountAmount(payAmount);
     };
   };
@@ -373,36 +403,15 @@ const SingleCustomerLedger = () => {
             <table className="table table-zebra">
               <tbody>
                 {
-                  singleCustomer?.acBalance ?
-                    <tr>
-                      <th className="w-[35%]">Customer Balance:</th>
-                      <td className="relative">
-                        BDT: {parseFloat(singleCustomer?.acBalance).toFixed(2) || 0}
-                        <button onClick={() =>
-                          document.getElementById("addCustomerBalance").showModal()} className="absolute bg-green-300 py-3 px-2 right-0 top-0 border-l border-gray-500">Add Balance</button>
-                      </td>
-
-                      <td className="!p-0">
-                        {singleCustomer?.acBalance > 0 ? (
-                          <button
-                            onClick={handleReceivedByAccount}
-                            className="w-full py-3 text-center bg-yellow-500 text-white"
-                          >
-                            Received
-                          </button>
-                        ) : (
-                          <button
-                            onClick={handleReceivedByAccount}
-                            className="w-full py-3 text-center bg-gray-500 text-white"
-                            disabled
-                          >
-                            Received
-                          </button>
-                        )}
-                      </td>
-                    </tr> : null
+                  currentCustomer?.crBalance > 0 &&
+                  <tr>
+                    <th>Customer Balance</th>
+                    <td>
+                      BDT: {parseFloat(currentCustomer.crBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td>Statement</td>
+                  </tr>
                 }
-
                 <tr>
                   <th>Total Due:</th>
                   <td>
@@ -756,19 +765,19 @@ const SingleCustomerLedger = () => {
               {
                 stillDue &&
                 <label className="flex items-center">
-                <p className="w-1/3 font-semibold">Schedule Date:</p>{" "}
-                <DatePicker
-                  dateFormat="dd.MM.yyyy"
-                  selected={startDate}
-                  onChange={(date) => {
-                    setStartDate(date); // Update state
-                  }}
-                  placeholderText="Select a date"
-                  required
-                  minDate={new Date()}
-                  className="py-1 px-2 rounded-md outline-none border w-full"
-                />
-              </label>
+                  <p className="w-1/3 font-semibold">Schedule Date:</p>{" "}
+                  <DatePicker
+                    dateFormat="dd.MM.yyyy"
+                    selected={startDate}
+                    onChange={(date) => {
+                      setStartDate(date); // Update state
+                    }}
+                    placeholderText="Select a date"
+                    required
+                    minDate={new Date()}
+                    className="py-1 px-2 rounded-md outline-none border w-full"
+                  />
+                </label>
               }
 
               <label className="flex items-center">
