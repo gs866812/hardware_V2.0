@@ -37,6 +37,10 @@ const SingleCustomerLedger = () => {
   const pathParts = location.pathname.split("/");
   const id = pathParts[pathParts.length - 1]; // Get the last part of the pathname
 
+  const handleCustomerStatement = (id) => {
+    window.open(`/customerLedger/statement/id/${id}`, "_blank"); // Open in a new tab
+  };
+
 
   // search input onchange
   const handleInputChange = (event) => {
@@ -403,13 +407,16 @@ const SingleCustomerLedger = () => {
             <table className="table table-zebra">
               <tbody>
                 {
-                  currentCustomer?.crBalance > 0 &&
+                  
                   <tr>
                     <th>Customer Balance</th>
                     <td>
-                      BDT: {parseFloat(currentCustomer.crBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      BDT: {currentCustomer?.crBalance > 0?
+                      parseFloat(currentCustomer.crBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 0}
                     </td>
-                    <td>Statement</td>
+                    <td className="cursor-pointer bg-cyan-200" onClick={() => handleCustomerStatement(singleCustomer.customerSerial)}>
+                      Statement
+                    </td>
                   </tr>
                 }
                 <tr>

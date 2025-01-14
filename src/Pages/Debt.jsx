@@ -150,9 +150,10 @@ const Debt = () => {
     }, [reFetch]);
 
     // ----------------------------------------------------------------------------
-    const handleReceiver = (name, serial) => {
+    const handleReceiver = (name, serial, number) => {
         setReceiver(name);
         setSerial(serial);
+        setContactNumber(number);
         document.getElementById(`receivedAmount`).showModal();
     }
 
@@ -176,7 +177,7 @@ const Debt = () => {
         const date = moment(new Date()).format("DD.MM.YYYY");
         const rcvAmount = parseFloat(receivedAmount);
 
-        const receiverInfo = { date, rcvAmount, serial, note, method, userName };
+        const receiverInfo = { date, rcvAmount, serial, contactNumber, note, method, userName };
 
         axiosSecure.post("/debt/receivedMoney", receiverInfo)
             .then((data) => {
@@ -200,9 +201,10 @@ const Debt = () => {
 
     // ------------------------------------------------------------------------------------
     // ----------------------------------------------------------------------------
-    const handlePayer = (name, serial) => {
+    const handlePayer = (name, serial, number) => {
         setPayer(name);
         setSerial(serial);
+        setContactNumber(number);
         document.getElementById(`givenAmount`).showModal();
     }
 
@@ -225,7 +227,7 @@ const Debt = () => {
         const date = moment(new Date()).format("DD.MM.YYYY");
         const payAmount = parseFloat(returnAmount);
 
-        const payInfo = { date, payAmount, returnNote, serial, returnMethod, userName };
+        const payInfo = { date, payAmount, returnNote, serial, contactNumber, returnMethod, userName };
 
 
         axiosSecure.post("/debt/returnMoney", payInfo)
@@ -451,9 +453,9 @@ const Debt = () => {
                                     <td className='w-[5%] text-center'>{
                                         parseFloat(borrower.crBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                                     }</td>
-                                    <td className='w-[12%] bg-green-600 text-white cursor-pointer' onClick={(e) => handleReceiver(borrower.borrowerName, borrower.serial)}>Receive From</td>
+                                    <td className='w-[12%] bg-green-600 text-white cursor-pointer' onClick={(e) => handleReceiver(borrower.borrowerName, borrower.serial, borrower.contactNumber)}>Receive From</td>
 
-                                    <td className='w-[10%] bg-red-500 text-white cursor-pointer' onClick={() => handlePayer(borrower.borrowerName, borrower.serial)}>Return To</td>
+                                    <td className='w-[10%] bg-red-500 text-white cursor-pointer' onClick={() => handlePayer(borrower.borrowerName, borrower.serial, borrower.contactNumber)}>Return To</td>
                                     <td className='w-[8px] bg-yellow-500  cursor-pointer' onClick={() => handleHistory(borrower.borrowerName, borrower.serial)}>History</td>
                                 </tr>
                             ))
@@ -691,7 +693,7 @@ const Debt = () => {
                                     }`}
                                 disabled={isLoading}
                             >
-                                Money Pay
+                                Pay Money
                             </button>
                         </span>
                     </form>

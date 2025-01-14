@@ -31,6 +31,7 @@ import DebtProtected from "./Components/DebtProtected/DebtProtected";
 import Lend from "./Pages/Lend";
 import CustomerScheduleDate from "./Pages/CustomerScheduleDate";
 import DailySummary from "./Pages/DailySummary";
+import CustomerStatement from "./Components/CustomerStatement/CustomerStatement";
 
 export const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
@@ -63,6 +64,7 @@ export const router = createBrowserRouter([
       { path: "/customerLedger", element: <CustomerLedger /> },
       { path: "/supplierLedger/id/:_id", element: <SingleSupplierLedger /> },
       { path: "/customerLedger/id/:_id", element: <SingleCustomerLedger /> },
+      { path: "/customerLedger/statement/id/:_id", element: <CustomerStatement /> },
       { path: "/return", element: <TradeReturn /> },
       { path: "/summary", element: <Summary /> },
       { path: "/expenseList", element: <ExpenseList /> },
